@@ -64,7 +64,7 @@
 
     <!-- Modal Profile Users -->
     <div class="modal" id="profileModal">
-        <div class="modal-content">
+        <div class="modal-content modal-profile">
             <span class="close-btn" id="closeProfileModal">&times;</span>
             <h2>👤 Profile Users</h2>
             <div class="profile-container">
@@ -101,9 +101,7 @@
             <h2>📋 My Bookings</h2>
             <div class="bookings-container">
                 <div class="bookings-tabs">
-                    <button class="tab-btn active" onclick="filterBookings('all')">All</button>
-                    <button class="tab-btn" onclick="filterBookings('upcoming')">Upcoming</button>
-                    <button class="tab-btn" onclick="filterBookings('completed')">Completed</button>
+                    <button class="tab-btn active" onclick="filterBookings('completed')">Completed</button>
                     <button class="tab-btn" onclick="filterBookings('cancelled')">Cancelled</button>
                 </div>
                 
@@ -160,22 +158,22 @@
             }
         ];
 
-        // Sample bookings data
+        // Sample bookings data - hanya completed dan cancelled
         let myBookings = [
             {
                 id: 'BK001',
                 roomName: 'Meeting Room',
-                startDate: '2024-12-05',
-                endDate: '2024-12-07',
+                startDate: '2024-10-15',
+                endDate: '2024-10-17',
                 total: 1500000,
-                status: 'upcoming',
+                status: 'completed',
                 company: 'PT Seru Indonesia'
             },
             {
                 id: 'BK002',
                 roomName: 'Private Office',
-                startDate: '2024-11-20',
-                endDate: '2024-11-22',
+                startDate: '2024-10-20',
+                endDate: '2024-10-22',
                 total: 500000,
                 status: 'completed',
                 company: 'PT Maju Jaya'
@@ -183,11 +181,20 @@
             {
                 id: 'BK003',
                 roomName: 'Event Space',
-                startDate: '2024-12-10',
-                endDate: '2024-12-11',
+                startDate: '2024-10-25',
+                endDate: '2024-10-26',
                 total: 350000,
-                status: 'upcoming',
+                status: 'cancelled',
                 company: 'CV Sukses Makmur'
+            },
+            {
+                id: 'BK004',
+                roomName: 'Class Room',
+                startDate: '2024-11-01',
+                endDate: '2024-11-03',
+                total: 2100000,
+                status: 'completed',
+                company: 'PT Teknologi Maju'
             }
         ];
 
@@ -241,17 +248,13 @@
         document.getElementById('myBookingsBtn').onclick = function() {
             document.getElementById('profileMenu').classList.remove('active');
             document.getElementById('bookingsModal').classList.add('active');
-            renderBookings('all');
+            renderBookings('completed'); // Default tampilkan completed
         };
 
         // Render Bookings
         function renderBookings(filter) {
             const list = document.getElementById('bookingsList');
-            let filteredBookings = myBookings;
-            
-            if (filter !== 'all') {
-                filteredBookings = myBookings.filter(b => b.status === filter);
-            }
+            let filteredBookings = myBookings.filter(b => b.status === filter);
 
             if (filteredBookings.length === 0) {
                 list.innerHTML = '<div class="no-bookings">No bookings found</div>';
@@ -259,37 +262,16 @@
             }
 
             list.innerHTML = filteredBookings.map(booking => `
-                <div class="booking-item ${booking.status}">
-                    <div class="booking-header">
-                        <div>
-                            <div class="booking-id">Booking #${booking.id}</div>
-                            <div class="booking-room">${booking.roomName}</div>
+                <div class="booking-item">
+                    <div class="booking-row">
+                        <div class="booking-main">
+                            <div class="booking-title">${booking.roomName}</div>
+                            <div class="booking-date">${booking.startDate} - ${booking.endDate}</div>
                         </div>
-                        <div class="booking-status status-${booking.status}">
-                            ${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                        <div class="booking-right">
+                            <div class="booking-price">Rp ${booking.total.toLocaleString('id-ID')}</div>
+                            <span class="status-badge status-${booking.status}">${booking.status}</span>
                         </div>
-                    </div>
-                    <div class="booking-details">
-                        <div class="booking-info-row">
-                            <span>🏢 Company:</span>
-                            <span>${booking.company}</span>
-                        </div>
-                        <div class="booking-info-row">
-                            <span>📅 Check-in:</span>
-                            <span>${booking.startDate}</span>
-                        </div>
-                        <div class="booking-info-row">
-                            <span>📅 Check-out:</span>
-                            <span>${booking.endDate}</span>
-                        </div>
-                        <div class="booking-info-row">
-                            <span>💰 Total:</span>
-                            <span class="booking-total">Rp ${booking.total.toLocaleString('id-ID')}</span>
-                        </div>
-                    </div>
-                    <div class="booking-actions">
-                        <button class="btn-small btn-view" onclick="viewBookingDetails('${booking.id}')">View Details</button>
-                        ${booking.status === 'upcoming' ? '<button class="btn-small btn-cancel" onclick="cancelBooking(\'' + booking.id + '\')">Cancel</button>' : ''}
                     </div>
                 </div>
             `).join('');
@@ -300,22 +282,6 @@
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             renderBookings(filter);
-        }
-
-        // View Booking Details
-        function viewBookingDetails(bookingId) {
-            const booking = myBookings.find(b => b.id === bookingId);
-            alert(`Booking Details:\n\nID: ${booking.id}\nRoom: ${booking.roomName}\nCompany: ${booking.company}\nDates: ${booking.startDate} to ${booking.endDate}\nTotal: Rp ${booking.total.toLocaleString('id-ID')}\nStatus: ${booking.status}`);
-        }
-
-        // Cancel Booking
-        function cancelBooking(bookingId) {
-            if (confirm('Are you sure you want to cancel this booking?')) {
-                const booking = myBookings.find(b => b.id === bookingId);
-                booking.status = 'cancelled';
-                renderBookings('all');
-                alert('Booking cancelled successfully');
-            }
         }
 
         // Step 1: Booking Details
