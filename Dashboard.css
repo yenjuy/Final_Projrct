@@ -494,7 +494,7 @@ body {
         flex-direction: column;
     }
 
-    .btn-modal {
+    .btn-modal { 
         width: 100%;
     }
 }
