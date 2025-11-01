@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="booking.css">
+    <title>Seru Booking</title>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="img/LogoSeru.png" alt="Logo Seru">
+        </div>
+        <nav>
+            <a id="profileBtn">
+                <span>👤</span>
+                <span>Profile</span>
+            </a>
+            <ul class="profile-menu" id="profileMenu">
+                <li>👤 Profile Users</li>
+                <li>📋 My Bookings</li>
+                <li>🚪 Logout</li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Book Your Meeting Room</h1>
+        <p>Professional spaces for your business needs</p>
+    </section>
+
+    <!-- Main Container -->
+    <div class="container">
+        <h2>Available Meeting Rooms</h2>
+        <p>Choose from our selection of professional meeting spaces</p>
+
+        <!-- Rooms Grid -->
+        <div class="rooms-grid" id="roomsGrid">
+            <!-- Rooms akan di-generate oleh JavaScript -->
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Details</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Payment</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Confirm</div>
+                </div>
+            </div>
+
+            <div id="modalBody">
+                <!-- Content akan di-generate oleh JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data meeting rooms
+        const rooms = [
+            {
+                id: 1,
+                name: "Executive Board Room",
+                description: "20 People • Projector • Whiteboard • WiFi",
+                price: 500000,
+                image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&h=300&fit=crop"
+            },
+            {
+                id: 2,
+                name: "Small Meeting Room",
+                description: "8 People • TV Screen • Whiteboard • WiFi",
+                price: 250000,
+                image: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=500&h=300&fit=crop"
+            },
+            {
+                id: 3,
+                name: "Conference Hall",
+                description: "50 People • Audio System • Stage • WiFi",
+                price: 1200000,
+                image: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=500&h=300&fit=crop"
+            },
+            {
+                id: 4,
+                name: "Training Room",
+                description: "30 People • Projector • Tables • WiFi",
+                price: 700000,
+                image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=500&h=300&fit=crop"
+            },
+            {
+                id: 5,
+                name: "VIP Meeting Suite",
+                description: "12 People • Smart TV • Lounge • Catering",
+                price: 950000,
+                image: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=500&h=300&fit=crop"
+            },
+            {
+                id: 6,
+                name: "Co-Working Space",
+                description: "15 People • Flexible Setup • WiFi • Coffee",
+                price: 350000,
+                image: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=500&h=300&fit=crop"
+            }
+        ];
+
+        let currentRoom = null;
+        let currentStep = 1;
+        let bookingData = {};
+
+        // Render rooms
+        function renderRooms() {
+            const grid = document.getElementById('roomsGrid');
+            grid.innerHTML = rooms.map(room => `
+                <div class="room-card" onclick="openBookingModal(${room.id})">
+                    <div class="room-image" style="background-image: url('${room.image}')"></div>
+                    <div class="room-info">
+                        <div class="room-name">${room.name}</div>
+                        <div class="room-details">${room.description}</div>
+                        <div class="room-price">Rp ${room.price.toLocaleString('id-ID')}/day</div>
+                        <button class="btn">Book Now</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Open booking modal
+        function openBookingModal(roomId) {
+            currentRoom = rooms.find(r => r.id === roomId);
+            currentStep = 1;
+            bookingData = {};
+            document.getElementById('bookingModal').classList.add('active');
+            renderStep1();
+        }
+
+        // Close modal
+        document.getElementById('closeModal').onclick = function() {
+            document.getElementById('bookingModal').classList.remove('active');
+        };
+
+        // Step 1: Booking Details
+        function renderStep1() {
+            updateSteps(1);
+            document.getElementById('modalBody').innerHTML = `
+                <h2>Booking Details</h2>
+                <form id="bookingForm">
+                    <div class="form-group">
+                        <label>Company/Organization Name</label>
+                        <input type="text" id="guestName" required placeholder="Enter company name">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Person</label>
+                        <input type="text" id="contactPerson" required placeholder="Enter contact person name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="guestEmail" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="guestPhone" required placeholder="+62 xxx xxxx xxxx">
+                    </div>
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="date" id="checkIn" required>
+                    </div>
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input type="date" id="checkOut" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="time" id="startTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="time" id="endTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Participants</label>
+                        <input type="number" id="participants" min="1" required placeholder="Enter number of people">
+                    </div>
+                    <div class="form-group">
+                        <label>Purpose of Meeting</label>
+                        <textarea id="specialRequests" placeholder="e.g., Training, Workshop, Conference..."></textarea>
+                    </div>
+                    <button type="submit" class="btn">Continue to Payment</button>
+                </form>
+            `;
+
+            document.getElementById('bookingForm').onsubmit = function(e) {
+                e.preventDefault();
+                bookingData.name = document.getElementById('guestName').value;
+                bookingData.contactPerson = document.getElementById('contactPerson').value;
+                bookingData.email = document.getElementById('guestEmail').value;
+                bookingData.phone = document.getElementById('guestPhone').value;
+                bookingData.checkIn = document.getElementById('checkIn').value;
+                bookingData.checkOut = document.getElementById('checkOut').value;
+                bookingData.startTime = document.getElementById('startTime').value;
+                bookingData.endTime = document.getElementById('endTime').value;
+                bookingData.participants = document.getElementById('participants').value;
+                bookingData.requests = document.getElementById('specialRequests').value;
+                renderStep2();
+            };
+        }
+
+        // Step 2: Payment
+        function renderStep2() {
+            updateSteps(2);
+            const days = calculateDays();
+            const pricePerDay = currentRoom.price;
+            const total = pricePerDay * days;
+
+            document.getElementById('modalBody').innerHTML = `
+                <h2>Payment Method</h2>
+                <div class="booking-summary">
+                    <div class="summary-row">
+                        <span>Room:</span>
+                        <span>${currentRoom.name}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Start Date:</span>
+                        <span>${bookingData.checkIn}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>End Date:</span>
+                        <span>${bookingData.checkOut}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Time:</span>
+                        <span>${bookingData.startTime} - ${bookingData.endTime}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Participants:</span>
+                        <span>${bookingData.participants} people</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Price per day:</span>
+                        <span>Rp ${pricePerDay.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Number of days:</span>
+                        <span>${days} ${days > 1 ? 'days' : 'day'}</span>
+                    </div>
+                    <div class="summary-row summary-total">
+                        <span>Total:</span>
+                        <span>Rp ${total.toLocaleString('id-ID')}</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Payment Method</label>
+                    <div class="payment-methods">
+                        <div class="payment-method" onclick="selectPayment('credit')">
+                            <div>💳</div>
+                            <div>Credit Card</div>
+                        </div>
+                        <div class="payment-method" onclick="selectPayment('bank')">
+                            <div>🏦</div>
+                            <div>Bank Transfer</div>
+                        </div>
+                        <div class="payment-method" onclick="selectPayment('ewallet')">
+                            <div>📱</div>
+                            <div>E-Wallet</div>
+                        </div>
+                        <div class="payment-method" onclick="selectPayment('cash')">
+                            <div>💵</div>
+                            <div>Cash</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="renderStep3()">Confirm Booking</button>
+                <button class="btn btn-secondary" onclick="renderStep1()">Back</button>
+            `;
+        }
+
+        // Select payment method
+        function selectPayment(method) {
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.target.closest('.payment-method').classList.add('selected');
+            bookingData.paymentMethod = method;
+        }
+
+        // Step 3: Confirmation
+        function renderStep3() {
+            if (!bookingData.paymentMethod) {
+                alert('Please select a payment method');
+                return;
+            }
+
+            updateSteps(3);
+            const days = calculateDays();
+            const total = currentRoom.price * days;
+
+            document.getElementById('modalBody').innerHTML = `
+                <div class="success-message">
+                    <div class="success-icon">✅</div>
+                    <h2>Booking Confirmed!</h2>
+                    <p style="margin: 20px 0;">Your meeting room booking has been successfully confirmed.</p>
+                    
+                    <div class="booking-summary">
+                        <div class="summary-row">
+                            <strong>Company:</strong>
+                            <span>${bookingData.name}</span>
+                        </div>
+                        <div class="summary-row">
+                            <strong>Contact Person:</strong>
+                            <span>${bookingData.contactPerson}</span>
+                        </div>
+                        <div class="summary-row">
+                            <strong>Email:</strong>
+                            <span>${bookingData.email}</span>
+                        </div>
+                        <div class="summary-row">
+                            <strong>Room:</strong>
+                            <span>${currentRoom.name}</span>
+                        </div>
+                        <div class="summary-row">
+                            <strong>Start Date:</strong>
+                            <span>${bookingData.checkIn}</span>
+                        </div>
+                        <div class="summary-row">
+                            <strong>End Date:</strong>
+                            <span>${bookingData.checkOut}</span>
+                        </div>
+                        <div class="summary-row">
+                            <strong>Duration:</strong>
+                            <span>${days} ${days > 1 ? 'days' : 'day'}</span>
+                        </div>
+                        <div class="summary-row">
+                            <strong>Time:</strong>
+                            <span>${bookingData.startTime} - ${bookingData.endTime}</span>
+                        </div>
+                        <div class="summary-row">
+                            <strong>Participants:</strong>
+                            <span>${bookingData.participants} people</span>
+                        </div>
+                        <div class="summary-row">
+                            <strong>Payment:</strong>
+                            <span>${getPaymentName(bookingData.paymentMethod)}</span>
+                        </div>
+                        <div class="summary-row summary-total">
+                            <strong>Total Paid:</strong>
+                            <span>Rp ${total.toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="closeAndReset()">Done</button>
+                </div>
+            `;
+        }
+
+        // Helper functions
+        function calculateDays() {
+            if (!bookingData.checkIn || !bookingData.checkOut) return 1;
+            const start = new Date(bookingData.checkIn);
+            const end = new Date(bookingData.checkOut);
+            const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            return diff > 0 ? diff : 1;
+        }
+
+        function getPaymentName(method) {
+            const names = {
+                'credit': 'Credit Card',
+                'bank': 'Bank Transfer',
+                'ewallet': 'E-Wallet',
+                'cash': 'Cash'
+            };
+            return names[method] || method;
+        }
+
+        function updateSteps(step) {
+            document.querySelectorAll('.step').forEach((el, index) => {
+                el.classList.remove('active', 'completed');
+                if (index + 1 < step) {
+                    el.classList.add('completed');
+                } else if (index + 1 === step) {
+                    el.classList.add('active');
+                }
+            });
+        }
+
+        function closeAndReset() {
+            document.getElementById('bookingModal').classList.remove('active');
+            currentRoom = null;
+            currentStep = 1;
+            bookingData = {};
+        }
+
+        // Profile menu toggle
+        document.getElementById('profileBtn').onclick = function(e) {
+            e.stopPropagation();
+            document.getElementById('profileMenu').classList.toggle('active');
+        };
+
+        document.addEventListener('click', function() {
+            document.getElementById('profileMenu').classList.remove('active');
+        });
+
+        // Initialize
+        renderRooms();
+    </script>
+</body>
+</html>
