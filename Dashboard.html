@@ -28,30 +28,32 @@
                 <span>👥</span>
                 <span>Customers</span>
             </li>
-            <li class="menu-item">
-                <span>⚙️</span>
-                <span>Settings</span>
-            </li>
         </ul>
     </aside>
 
     <main class="main-content" id="mainContent">
-        <!-- Dashboard content will be loaded here -->
     </main>
 
+    <!-- Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
     <script>
-        // Page content templates
         const pages = {
             dashboard: `
                 <div class="header">
                     <div>
                         <h1>Dashboard</h1>
-                        <p style="color: #718096; margin-top: 5px;">Welcome back, Admin!</p>
+                        <p class="header-subtitle">Welcome back, Admin!</p>
                     </div>
                     <div class="user-info">
                         <div>
-                            <div style="font-weight: 600; color: #2d3748;">Admin User</div>
-                            <div style="font-size: 13px; color: #718096;">admin@meetingspace.com</div>
+                            <div class="user-name">Admin User</div>
+                            <div class="user-email">admin@meetingspace.com</div>
                         </div>
                         <div class="avatar">AU</div>
                     </div>
@@ -75,110 +77,7 @@
                     </div>
                 </div>
 
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">Recent Bookings</h2>
-                            <button class="btn-small" onclick="navigateTo('bookings')">View All</button>
-                        </div>
-                        <ul class="booking-list">
-                            <li class="booking-item">
-                                <div class="booking-room">Executive Board Room</div>
-                                <div class="booking-details">
-                                    <span>🏢 PT. Teknologi Maju</span>
-                                    <span>📅 26 Oct 2025</span>
-                                    <span>⏰ 09:00 - 12:00</span>
-                                </div>
-                            </li>
-                            <li class="booking-item">
-                                <div class="booking-room">Conference Hall</div>
-                                <div class="booking-details">
-                                    <span>🏢 CV. Digital Creative</span>
-                                    <span>📅 26 Oct 2025</span>
-                                    <span>⏰ 13:00 - 17:00</span>
-                                </div>
-                            </li>
-                            <li class="booking-item">
-                                <div class="booking-room">Training Room</div>
-                                <div class="booking-details">
-                                    <span>🏢 Startup Indonesia</span>
-                                    <span>📅 27 Oct 2025</span>
-                                    <span>⏰ 08:00 - 16:00</span>
-                                </div>
-                            </li>
-                            <li class="booking-item">
-                                <div class="booking-room">Small Meeting Room</div>
-                                <div class="booking-details">
-                                    <span>🏢 Konsultan Bisnis</span>
-                                    <span>📅 27 Oct 2025</span>
-                                    <span>⏰ 10:00 - 12:00</span>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">Quick Stats</h2>
-                        </div>
-                        <div class="quick-stats">
-                            <div class="quick-stat-item">
-                                <span class="quick-stat-label">Occupancy Rate</span>
-                                <span class="quick-stat-value">78%</span>
-                            </div>
-                            <div class="quick-stat-item">
-                                <span class="quick-stat-label">Avg. Booking Duration</span>
-                                <span class="quick-stat-value">4.5h</span>
-                            </div>
-                            <div class="quick-stat-item">
-                                <span class="quick-stat-label">Customer Satisfaction</span>
-                                <span class="quick-stat-value">4.8⭐</span>
-                            </div>
-                            <div class="quick-stat-item">
-                                <span class="quick-stat-label">Repeat Customers</span>
-                                <span class="quick-stat-value">65%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Weekly Booking Trends</h2>
-                    </div>
-                    <div class="chart-container">
-                        <div>
-                            <div class="chart-bar" style="height: 180px;"></div>
-                            <div class="chart-label">Mon</div>
-                        </div>
-                        <div>
-                            <div class="chart-bar" style="height: 220px;"></div>
-                            <div class="chart-label">Tue</div>
-                        </div>
-                        <div>
-                            <div class="chart-bar" style="height: 190px;"></div>
-                            <div class="chart-label">Wed</div>
-                        </div>
-                        <div>
-                            <div class="chart-bar" style="height: 240px;"></div>
-                            <div class="chart-label">Thu</div>
-                        </div>
-                        <div>
-                            <div class="chart-bar" style="height: 210px;"></div>
-                            <div class="chart-label">Fri</div>
-                        </div>
-                        <div>
-                            <div class="chart-bar" style="height: 120px;"></div>
-                            <div class="chart-label">Sat</div>
-                        </div>
-                        <div>
-                            <div class="chart-bar" style="height: 80px;"></div>
-                            <div class="chart-label">Sun</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card" style="margin-top: 20px;">
+                <div class="card card-table">
                     <div class="card-header">
                         <h2 class="card-title">Room Status</h2>
                     </div>
@@ -194,44 +93,44 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Executive Board Room</td>
+                                <td>Meeting Room</td>
                                 <td>20 People</td>
-                                <td><span class="status-badge occupied">Occupied</span></td>
+                                <td><span class="status-badge occupied">Not Available</span></td>
                                 <td>3 bookings</td>
                                 <td>Rp 500,000</td>
                             </tr>
                             <tr>
-                                <td>Conference Hall</td>
+                                <td>Private Office</td>
                                 <td>50 People</td>
                                 <td><span class="status-badge available">Available</span></td>
                                 <td>2 bookings</td>
                                 <td>Rp 1,200,000</td>
                             </tr>
                             <tr>
-                                <td>Training Room</td>
+                                <td>Virtual Office</td>
                                 <td>30 People</td>
-                                <td><span class="status-badge occupied">Occupied</span></td>
+                                <td><span class="status-badge occupied">Not Available</span></td>
                                 <td>4 bookings</td>
                                 <td>Rp 700,000</td>
                             </tr>
                             <tr>
-                                <td>Small Meeting Room</td>
+                                <td>Class Room</td>
                                 <td>8 People</td>
                                 <td><span class="status-badge available">Available</span></td>
                                 <td>2 bookings</td>
                                 <td>Rp 250,000</td>
                             </tr>
                             <tr>
-                                <td>VIP Meeting Suite</td>
+                                <td>Coworking Space</td>
                                 <td>12 People</td>
                                 <td><span class="status-badge available">Available</span></td>
                                 <td>1 booking</td>
                                 <td>Rp 950,000</td>
                             </tr>
                             <tr>
-                                <td>Co-Working Space</td>
+                                <td>Event Space</td>
                                 <td>15 People</td>
-                                <td><span class="status-badge occupied">Occupied</span></td>
+                                <td><span class="status-badge occupied">Not Available</span></td>
                                 <td>5 bookings</td>
                                 <td>Rp 350,000</td>
                             </tr>
@@ -242,20 +141,19 @@
             bookings: `
                 <div class="header">
                     <h1>Bookings Management</h1>
-                    <button class="btn-small" style="padding: 10px 20px;">+ New Booking</button>
+                    <button class="btn-header">+ New Booking</button>
                 </div>
 
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">All Bookings</h2>
-                        <div style="display: flex; gap: 10px;">
-                            <select style="padding: 8px 15px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                        <div class="filter-group">
+                            <select class="filter-select">
                                 <option>All Status</option>
                                 <option>Confirmed</option>
-                                <option>Pending</option>
                                 <option>Cancelled</option>
                             </select>
-                            <input type="date" style="padding: 8px 15px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                            <input type="date" class="filter-date">
                         </div>
                     </div>
                     <table class="rooms-table">
@@ -264,8 +162,8 @@
                                 <th>Booking ID</th>
                                 <th>Customer</th>
                                 <th>Room</th>
-                                <th>Date</th>
-                                <th>Time</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
                                 <th>Status</th>
                                 <th>Amount</th>
                                 <th>Actions</th>
@@ -275,52 +173,52 @@
                             <tr>
                                 <td>#BK001</td>
                                 <td>PT. Teknologi Maju</td>
-                                <td>Executive Board Room</td>
+                                <td>Meeting Room</td>
                                 <td>26 Oct 2025</td>
-                                <td>09:00 - 12:00</td>
+                                <td>26 Oct 2025</td>
                                 <td><span class="status-badge available">Confirmed</span></td>
                                 <td>Rp 500,000</td>
-                                <td><button class="btn-small">View</button></td>
+                                <td><button class="btn-small" onclick="showBookingDetail('BK001')">View</button></td>
                             </tr>
                             <tr>
                                 <td>#BK002</td>
                                 <td>CV. Digital Creative</td>
-                                <td>Conference Hall</td>
+                                <td>Private Office</td>
                                 <td>26 Oct 2025</td>
-                                <td>13:00 - 17:00</td>
+                                <td>28 Oct 2025</td>
                                 <td><span class="status-badge available">Confirmed</span></td>
-                                <td>Rp 1,200,000</td>
-                                <td><button class="btn-small">View</button></td>
+                                <td>Rp 3,600,000</td>
+                                <td><button class="btn-small" onclick="showBookingDetail('BK002')">View</button></td>
                             </tr>
                             <tr>
                                 <td>#BK003</td>
                                 <td>Startup Indonesia</td>
-                                <td>Training Room</td>
+                                <td>Virtual Office</td>
                                 <td>27 Oct 2025</td>
-                                <td>08:00 - 16:00</td>
+                                <td>30 Oct 2025</td>
                                 <td><span class="status-badge available">Confirmed</span></td>
-                                <td>Rp 700,000</td>
-                                <td><button class="btn-small">View</button></td>
+                                <td>Rp 2,800,000</td>
+                                <td><button class="btn-small" onclick="showBookingDetail('BK003')">View</button></td>
                             </tr>
                             <tr>
                                 <td>#BK004</td>
                                 <td>Konsultan Bisnis</td>
-                                <td>Small Meeting Room</td>
+                                <td>Class Room</td>
                                 <td>27 Oct 2025</td>
-                                <td>10:00 - 12:00</td>
-                                <td><span class="status-badge occupied" style="background: #fff3e0; color: #f57c00;">Pending</span></td>
+                                <td>27 Oct 2025</td>
+                                <td><span class="status-badge pending">Cancel</span></td>
                                 <td>Rp 250,000</td>
-                                <td><button class="btn-small">View</button></td>
+                                <td><button class="btn-small" onclick="showBookingDetail('BK004')">View</button></td>
                             </tr>
                             <tr>
                                 <td>#BK005</td>
                                 <td>PT. Sukses Makmur</td>
-                                <td>VIP Meeting Suite</td>
+                                <td>Coworking Space</td>
                                 <td>28 Oct 2025</td>
-                                <td>14:00 - 18:00</td>
+                                <td>02 Nov 2025</td>
                                 <td><span class="status-badge available">Confirmed</span></td>
-                                <td>Rp 950,000</td>
-                                <td><button class="btn-small">View</button></td>
+                                <td>Rp 5,700,000</td>
+                                <td><button class="btn-small" onclick="showBookingDetail('BK005')">View</button></td>
                             </tr>
                         </tbody>
                     </table>
@@ -329,7 +227,7 @@
             rooms: `
                 <div class="header">
                     <h1>Rooms Management</h1>
-                    <button class="btn-small" style="padding: 10px 20px;">+ Add Room</button>
+                    <button class="btn-header">+ Add Room</button>
                 </div>
 
                 <div class="stats-grid">
@@ -346,12 +244,7 @@
                     <div class="stat-card">
                         <div class="stat-icon orange">🔴</div>
                         <div class="stat-value">3</div>
-                        <div class="stat-label">Occupied</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon purple">📊</div>
-                        <div class="stat-value">78%</div>
-                        <div class="stat-label">Avg. Occupancy</div>
+                        <div class="stat-label">Not Available</div>
                     </div>
                 </div>
 
@@ -365,7 +258,6 @@
                                 <th>Room Name</th>
                                 <th>Capacity</th>
                                 <th>Status</th>
-                                <th>Facilities</th>
                                 <th>Price/Day</th>
                                 <th>Today's Bookings</th>
                                 <th>Actions</th>
@@ -373,55 +265,49 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Executive Board Room</td>
+                                <td>Meeting Room</td>
                                 <td>20 People</td>
-                                <td><span class="status-badge occupied">Occupied</span></td>
-                                <td>Projector, Whiteboard, AC</td>
+                                <td><span class="status-badge occupied">Not Available</span></td>
                                 <td>Rp 500,000</td>
                                 <td>3 bookings</td>
                                 <td><button class="btn-small">Edit</button></td>
                             </tr>
                             <tr>
-                                <td>Conference Hall</td>
+                                <td>Private Office</td>
                                 <td>50 People</td>
                                 <td><span class="status-badge available">Available</span></td>
-                                <td>Sound System, Stage, AC</td>
                                 <td>Rp 1,200,000</td>
                                 <td>2 bookings</td>
                                 <td><button class="btn-small">Edit</button></td>
                             </tr>
                             <tr>
-                                <td>Training Room</td>
+                                <td>Virtual Office</td>
                                 <td>30 People</td>
-                                <td><span class="status-badge occupied">Occupied</span></td>
-                                <td>Projector, Tables, AC</td>
+                                <td><span class="status-badge occupied">Not Available</span></td>
                                 <td>Rp 700,000</td>
                                 <td>4 bookings</td>
                                 <td><button class="btn-small">Edit</button></td>
                             </tr>
                             <tr>
-                                <td>Small Meeting Room</td>
+                                <td>Class Room</td>
                                 <td>8 People</td>
                                 <td><span class="status-badge available">Available</span></td>
-                                <td>TV Screen, Whiteboard</td>
                                 <td>Rp 250,000</td>
                                 <td>2 bookings</td>
                                 <td><button class="btn-small">Edit</button></td>
                             </tr>
                             <tr>
-                                <td>VIP Meeting Suite</td>
+                                <td>Coworking Space</td>
                                 <td>12 People</td>
                                 <td><span class="status-badge available">Available</span></td>
-                                <td>Premium Furniture, Pantry</td>
                                 <td>Rp 950,000</td>
                                 <td>1 booking</td>
                                 <td><button class="btn-small">Edit</button></td>
                             </tr>
                             <tr>
-                                <td>Co-Working Space</td>
+                                <td>Event Space</td>
                                 <td>15 People</td>
-                                <td><span class="status-badge occupied">Occupied</span></td>
-                                <td>WiFi, Charging Ports</td>
+                                <td><span class="status-badge occupied">Not Available</span></td>
                                 <td>Rp 350,000</td>
                                 <td>5 bookings</td>
                                 <td><button class="btn-small">Edit</button></td>
@@ -433,7 +319,7 @@
             customers: `
                 <div class="header">
                     <h1>Customers</h1>
-                    <button class="btn-small" style="padding: 10px 20px;">+ Add Customer</button>
+                    <button class="btn-header">+ Add Customer</button>
                 </div>
 
                 <div class="stats-grid">
@@ -452,17 +338,12 @@
                         <div class="stat-value">65%</div>
                         <div class="stat-label">Repeat Rate</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon purple">⭐</div>
-                        <div class="stat-value">4.8</div>
-                        <div class="stat-label">Avg. Rating</div>
-                    </div>
                 </div>
 
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">Customer List</h2>
-                        <input type="text" placeholder="Search customer..." style="padding: 8px 15px; border: 1px solid #e2e8f0; border-radius: 6px; width: 250px;">
+                        <input type="text" placeholder="Search customer..." class="search-input">
                     </div>
                     <table class="rooms-table">
                         <thead>
@@ -484,7 +365,7 @@
                                 <td>15 bookings</td>
                                 <td>Rp 7,500,000</td>
                                 <td><span class="status-badge available">Active</span></td>
-                                <td><button class="btn-small">View</button></td>
+                                <td><button class="btn-small" onclick="showCustomerDetail('teknologi-maju')">View</button></td>
                             </tr>
                             <tr>
                                 <td>CV. Digital Creative</td>
@@ -493,7 +374,7 @@
                                 <td>8 bookings</td>
                                 <td>Rp 4,200,000</td>
                                 <td><span class="status-badge available">Active</span></td>
-                                <td><button class="btn-small">View</button></td>
+                                <td><button class="btn-small" onclick="showCustomerDetail('digital-creative')">View</button></td>
                             </tr>
                             <tr>
                                 <td>Startup Indonesia</td>
@@ -502,7 +383,7 @@
                                 <td>22 bookings</td>
                                 <td>Rp 15,400,000</td>
                                 <td><span class="status-badge available">Active</span></td>
-                                <td><button class="btn-small">View</button></td>
+                                <td><button class="btn-small" onclick="showCustomerDetail('startup-indonesia')">View</button></td>
                             </tr>
                             <tr>
                                 <td>Konsultan Bisnis</td>
@@ -511,7 +392,7 @@
                                 <td>5 bookings</td>
                                 <td>Rp 1,250,000</td>
                                 <td><span class="status-badge available">Active</span></td>
-                                <td><button class="btn-small">View</button></td>
+                                <td><button class="btn-small" onclick="showCustomerDetail('konsultan-bisnis')">View</button></td>
                             </tr>
                             <tr>
                                 <td>PT. Sukses Makmur</td>
@@ -520,148 +401,40 @@
                                 <td>18 bookings</td>
                                 <td>Rp 17,100,000</td>
                                 <td><span class="status-badge available">Active</span></td>
-                                <td><button class="btn-small">View</button></td>
+                                <td><button class="btn-small" onclick="showCustomerDetail('sukses-makmur')">View</button></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-            `,
-            settings: `
-                <div class="header">
-                    <h1>Settings</h1>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">System Settings</h2>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 20px;">
-                        <div style="padding: 20px; background: #f7fafc; border-radius: 8px;">
-                            <h3 style="margin-bottom: 10px; color: #2d3748;">Business Information</h3>
-                            <div style="display: grid; gap: 15px;">
-                                <div>
-                                    <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #718096;">Business Name</label>
-                                    <input type="text" value="MeetingSpace" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-                                </div>
-                                <div>
-                                    <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #718096;">Email</label>
-                                    <input type="email" value="admin@meetingspace.com" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-                                </div>
-                                <div>
-                                    <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #718096;">Phone</label>
-                                    <input type="tel" value="+62 21 1234567" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="padding: 20px; background: #f7fafc; border-radius: 8px;">
-                            <h3 style="margin-bottom: 10px; color: #2d3748;">Operating Hours</h3>
-                            <div style="display: grid; gap: 15px;">
-                                <div style="display: flex; gap: 15px; align-items: center;">
-                                    <label style="min-width: 100px; font-size: 14px; color: #718096;">Weekdays</label>
-                                    <input type="time" value="08:00" style="padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-                                    <span>to</span>
-                                    <input type="time" value="18:00" style="padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-                                </div>
-                                <div style="display: flex; gap: 15px; align-items: center;">
-                                    <label style="min-width: 100px; font-size: 14px; color: #718096;">Weekend</label>
-                                    <input type="time" value="09:00" style="padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-                                    <span>to</span>
-                                    <input type="time" value="15:00" style="padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="padding: 20px; background: #f7fafc; border-radius: 8px;">
-                            <h3 style="margin-bottom: 10px; color: #2d3748;">Booking Settings</h3>
-                            <div style="display: grid; gap: 15px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <div style="font-weight: 600; color: #2d3748;">Auto-confirm bookings</div>
-                                        <div style="font-size: 13px; color: #718096;">Automatically confirm new bookings</div>
-                                    </div>
-                                    <label style="position: relative; display: inline-block; width: 50px; height: 24px;">
-                                        <input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">
-                                        <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #667eea; border-radius: 24px;"></span>
-                                    </label>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <div style="font-weight: 600; color: #2d3748;">Email notifications</div>
-                                        <div style="font-size: 13px; color: #718096;">Send booking confirmations via email</div>
-                                    </div>
-                                    <label style="position: relative; display: inline-block; width: 50px; height: 24px;">
-                                        <input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">
-                                        <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #667eea; border-radius: 24px;"></span>
-                                    </label>
-                                </div>
-                                <div>
-                                    <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #718096;">Minimum booking duration (hours)</label>
-                                    <input type="number" value="2" min="1" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-small" style="padding: 12px 30px;">Save Changes</button>
-                            <button style="padding: 12px 30px; background: #e2e8f0; color: #2d3748; border: none; border-radius: 6px; cursor: pointer;">Cancel</button>
-                        </div>
-                    </div>
-                </div>
             `
         };
 
-        // Navigation function
         function navigateTo(page) {
             const mainContent = document.getElementById('mainContent');
             mainContent.innerHTML = pages[page];
             
-            // Update active menu
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');
             });
             
-            // Set active based on page
             const menuItems = document.querySelectorAll('.menu-item');
             const pageIndex = {
                 'dashboard': 0,
                 'bookings': 1,
                 'rooms': 2,
-                'customers': 3,
-                'revenue': 4,
-                'reports': 5,
-                'settings': 6
+                'customers': 3
             };
             
             if (menuItems[pageIndex[page]]) {
                 menuItems[pageIndex[page]].classList.add('active');
             }
-            
-            // Re-animate charts if present
-            setTimeout(() => animateCharts(), 100);
         }
 
-        // Animate chart bars
-        function animateCharts() {
-            const bars = document.querySelectorAll('.chart-bar');
-            bars.forEach((bar, index) => {
-                const originalHeight = bar.style.height;
-                bar.style.height = '0px';
-                setTimeout(() => {
-                    bar.style.transition = 'height 0.6s ease';
-                    bar.style.height = originalHeight;
-                }, index * 100);
-            });
-        }
-
-        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Load dashboard on start
             navigateTo('dashboard');
             
-            // Setup menu navigation
             const menuItems = document.querySelectorAll('.menu-item');
-            const pageNames = ['dashboard', 'bookings', 'rooms', 'customers', 'revenue', 'reports', 'settings'];
+            const pageNames = ['dashboard', 'bookings', 'rooms', 'customers'];
             
             menuItems.forEach((item, index) => {
                 item.addEventListener('click', function() {
@@ -669,6 +442,272 @@
                 });
             });
         });
+
+        // Modal Functions
+        const modal = document.getElementById('detailModal');
+        const closeBtn = document.querySelector('.close-modal');
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Booking Details Data
+        const bookingsData = {
+            'BK001': {
+                id: '#BK001',
+                customer: 'PT. Teknologi Maju',
+                email: 'info@teknologimaju.com',
+                phone: '+62 21 1234567',
+                room: 'Meeting Room',
+                startDate: '26 October 2025',
+                endDate: '26 October 2025',
+                duration: '1 Day',
+                status: 'Confirmed',
+                amount: 'Rp 500,000',
+                paymentStatus: 'Paid',
+                notes: 'Membutuhkan projector dan whiteboard tambahan'
+            },
+            'BK002': {
+                id: '#BK002',
+                customer: 'CV. Digital Creative',
+                email: 'contact@digitalcreative.id',
+                phone: '+62 21 9876543',
+                room: 'Private Office',
+                startDate: '26 October 2025',
+                endDate: '28 October 2025',
+                duration: '3 Days',
+                status: 'Confirmed',
+                amount: 'Rp 3,600,000',
+                paymentStatus: 'Paid',
+                notes: 'Event launching produk baru'
+            },
+            'BK003': {
+                id: '#BK003',
+                customer: 'Startup Indonesia',
+                email: 'hello@startupid.com',
+                phone: '+62 812 3456789',
+                room: 'Virtual Office',
+                startDate: '27 October 2025',
+                endDate: '30 October 2025',
+                duration: '4 Days',
+                status: 'Confirmed',
+                amount: 'Rp 2,800,000',
+                paymentStatus: 'Pending',
+                notes: 'Training karyawan baru'
+            },
+            'BK004': {
+                id: '#BK004',
+                customer: 'Konsultan Bisnis',
+                email: 'admin@konsultanbisnis.co.id',
+                phone: '+62 21 5551234',
+                room: 'Class Room',
+                startDate: '27 October 2025',
+                endDate: '27 October 2025',
+                duration: '1 Day',
+                status: 'Cancelled',
+                amount: 'Rp 250,000',
+                paymentStatus: 'Refunded',
+                notes: 'Dibatalkan oleh customer'
+            },
+            'BK005': {
+                id: '#BK005',
+                customer: 'PT. Sukses Makmur',
+                email: 'cs@suksesmakmur.com',
+                phone: '+62 21 7778888',
+                room: 'Coworking Space',
+                startDate: '28 October 2025',
+                endDate: '02 November 2025',
+                duration: '6 Days',
+                status: 'Confirmed',
+                amount: 'Rp 5,700,000',
+                paymentStatus: 'Paid',
+                notes: 'Meeting dengan klien VIP'
+            }
+        };
+
+        // Customer Details Data
+        const customersData = {
+            'teknologi-maju': {
+                name: 'PT. Teknologi Maju',
+                email: 'info@teknologimaju.com',
+                phone: '+62 21 1234567',
+                address: 'Jl. Sudirman No. 123, Jakarta Pusat',
+                totalBookings: 15,
+                totalSpent: 'Rp 7,500,000',
+                status: 'Active',
+                joinDate: '15 January 2024',
+                favoriteRoom: 'Meeting Room',
+                lastBooking: '26 October 2025'
+            },
+            'digital-creative': {
+                name: 'CV. Digital Creative',
+                email: 'contact@digitalcreative.id',
+                phone: '+62 21 9876543',
+                address: 'Jl. Gatot Subroto No. 456, Jakarta Selatan',
+                totalBookings: 8,
+                totalSpent: 'Rp 4,200,000',
+                status: 'Active',
+                joinDate: '10 March 2024',
+                favoriteRoom: 'Private Office',
+                lastBooking: '26 October 2025'
+            },
+            'startup-indonesia': {
+                name: 'Startup Indonesia',
+                email: 'hello@startupid.com',
+                phone: '+62 812 3456789',
+                address: 'Jl. HR Rasuna Said No. 789, Jakarta Selatan',
+                totalBookings: 22,
+                totalSpent: 'Rp 15,400,000',
+                status: 'Active',
+                joinDate: '05 December 2023',
+                favoriteRoom: 'Virtual Office',
+                lastBooking: '27 October 2025'
+            },
+            'konsultan-bisnis': {
+                name: 'Konsultan Bisnis',
+                email: 'admin@konsultanbisnis.co.id',
+                phone: '+62 21 5551234',
+                address: 'Jl. Thamrin No. 321, Jakarta Pusat',
+                totalBookings: 5,
+                totalSpent: 'Rp 1,250,000',
+                status: 'Active',
+                joinDate: '20 June 2024',
+                favoriteRoom: 'Class Room',
+                lastBooking: '27 October 2025'
+            },
+            'sukses-makmur': {
+                name: 'PT. Sukses Makmur',
+                email: 'cs@suksesmakmur.com',
+                phone: '+62 21 7778888',
+                address: 'Jl. Kuningan No. 654, Jakarta Selatan',
+                totalBookings: 18,
+                totalSpent: 'Rp 17,100,000',
+                status: 'Active',
+                joinDate: '08 February 2024',
+                favoriteRoom: 'Coworking Space',
+                lastBooking: '28 October 2025'
+            }
+        };
+
+        function showBookingDetail(bookingId) {
+            const booking = bookingsData[bookingId];
+            const modalBody = document.getElementById('modalBody');
+            
+            modalBody.innerHTML = `
+                <h2>Booking Details</h2>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <label>Booking ID</label>
+                        <p>${booking.id}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Status</label>
+                        <p><span class="status-badge ${booking.status === 'Confirmed' ? 'available' : booking.status === 'Cancelled' ? 'pending' : 'occupied'}">${booking.status}</span></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Customer Name</label>
+                        <p>${booking.customer}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Email</label>
+                        <p>${booking.email}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Phone</label>
+                        <p>${booking.phone}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Room</label>
+                        <p>${booking.room}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Start Date</label>
+                        <p>${booking.startDate}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>End Date</label>
+                        <p>${booking.endDate}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Duration</label>
+                        <p><strong>${booking.duration}</strong></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Amount</label>
+                        <p><strong>${booking.amount}</strong></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Payment Status</label>
+                        <p><span class="status-badge ${booking.paymentStatus === 'Paid' ? 'available' : booking.paymentStatus === 'Pending' ? 'pending' : 'occupied'}">${booking.paymentStatus}</span></p>
+                    </div>
+                    <div class="detail-item full-width">
+                        <label>Notes</label>
+                        <p>${booking.notes}</p>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
+
+        function showCustomerDetail(customerId) {
+            const customer = customersData[customerId];
+            const modalBody = document.getElementById('modalBody');
+            
+            modalBody.innerHTML = `
+                <h2>Customer Details</h2>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <label>Customer Name</label>
+                        <p><strong>${customer.name}</strong></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Status</label>
+                        <p><span class="status-badge available">${customer.status}</span></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Email</label>
+                        <p>${customer.email}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Phone</label>
+                        <p>${customer.phone}</p>
+                    </div>
+                    <div class="detail-item full-width">
+                        <label>Address</label>
+                        <p>${customer.address}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Join Date</label>
+                        <p>${customer.joinDate}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Total Bookings</label>
+                        <p><strong>${customer.totalBookings} bookings</strong></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Total Spent</label>
+                        <p><strong>${customer.totalSpent}</strong></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Favorite Room</label>
+                        <p>${customer.favoriteRoom}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Last Booking</label>
+                        <p>${customer.lastBooking}</p>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
     </script>
 </body>
 </html>
