@@ -403,6 +403,36 @@ nav a:hover {
     margin: 0 auto 15px;
 }
 
+.profile-info {
+    background: #f9f9f9;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.profile-info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 15px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.profile-info-row:last-child {
+    border-bottom: none;
+}
+
+.profile-label {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+}
+
+.profile-value {
+    font-size: 15px;
+    color: #333;
+    font-weight: 600;
+}
+
 .btn-small {
     background: #f0f0f0;
     color: #333;
