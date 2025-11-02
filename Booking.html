@@ -340,20 +340,8 @@
                         <span>${currentRoom.name}</span>
                     </div>
                     <div class="summary-row">
-                        <span>Start Date:</span>
-                        <span>${bookingData.checkIn}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>End Date:</span>
-                        <span>${bookingData.checkOut}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Price per day:</span>
-                        <span>Rp ${pricePerDay.toLocaleString('id-ID')}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Number of days:</span>
-                        <span>${days} ${days > 1 ? 'days' : 'day'}</span>
+                        <span>Duration:</span>
+                        <span>${bookingData.checkIn} - ${bookingData.checkOut} (${days} ${days > 1 ? 'days' : 'day'})</span>
                     </div>
                     <div class="summary-row summary-total">
                         <span>Total:</span>
@@ -412,7 +400,7 @@
                 <div class="success-message">
                     <div class="success-icon">✅</div>
                     <h2>Booking Confirmed!</h2>
-                    <p style="margin: 20px 0;">Your meeting room booking has been successfully confirmed.</p>
+                    <p>Your meeting room booking has been successfully confirmed.</p>
                     
                     <div class="booking-summary">
                         <div class="summary-row">
@@ -428,19 +416,15 @@
                             <span>${currentRoom.name}</span>
                         </div>
                         <div class="summary-row">
-                            <strong>Start Date:</strong>
-                            <span>${bookingData.checkIn}</span>
-                        </div>
-                        <div class="summary-row">
-                            <strong>End Date:</strong>
-                            <span>${bookingData.checkOut}</span>
+                            <strong>Duration:</strong>
+                            <span>${bookingData.checkIn} - ${bookingData.checkOut}</span>
                         </div>
                         <div class="summary-row">
                             <strong>Payment:</strong>
                             <span>${getPaymentName(bookingData.paymentMethod)}</span>
                         </div>
                         <div class="summary-row summary-total">
-                            <strong>Total Paid:</strong>
+                            <strong>Total:</strong>
                             <span>Rp ${total.toLocaleString('id-ID')}</span>
                         </div>
                     </div>

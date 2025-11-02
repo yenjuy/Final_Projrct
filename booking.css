@@ -188,10 +188,10 @@ nav a:hover {
     background: #764ba2;
     color: white;
     border: none;
-    padding: 12px 30px;
+    padding: 9px 20px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     transition: background 0.3s;
     width: 100%;
@@ -221,12 +221,17 @@ nav a:hover {
 .modal-content {
     background: white;
     border-radius: 12px;
-    padding: 30px;
-    max-width: 600px;
+    padding: 20px;
+    max-width: 550px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
+}
+
+.modal-content h2 {
+    font-size: 18px;
+    margin-bottom: 12px;
 }
 
 .modal-large {
@@ -234,7 +239,7 @@ nav a:hover {
 }
 
 .modal-profile {
-    overflow-y: visible;
+    overflow: visible;
     max-height: auto;
 }
 
@@ -252,24 +257,25 @@ nav a:hover {
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     font-weight: 600;
     color: #333;
+    font-size: 13px;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 12px;
+    padding: 8px;
     border: 1px solid #ddd;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .form-group textarea {
@@ -279,41 +285,47 @@ nav a:hover {
 
 .booking-summary {
     background: #f9f9f9;
-    padding: 20px;
+    padding: 12px;
     border-radius: 8px;
-    margin-top: 20px;
+    margin-top: 12px;
 }
 
 .summary-row {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
-    font-size: 14px;
+    margin-bottom: 6px;
+    font-size: 12px;
 }
 
 .summary-total {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: bold;
     color: #764ba2;
     border-top: 2px solid #ddd;
-    padding-top: 10px;
-    margin-top: 10px;
+    padding-top: 6px;
+    margin-top: 6px;
 }
 
 .payment-methods {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin-top: 15px;
+    gap: 8px;
+    margin-top: 8px;
 }
 
 .payment-method {
     border: 2px solid #ddd;
     border-radius: 8px;
-    padding: 15px;
+    padding: 10px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s;
+    font-size: 12px;
+}
+
+.payment-method div:first-child {
+    font-size: 24px;
+    margin-bottom: 4px;
 }
 
 .payment-method:hover {
@@ -328,7 +340,7 @@ nav a:hover {
 .step-indicator {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 30px;
+    margin-bottom: 15px;
     position: relative;
 }
 
@@ -339,16 +351,30 @@ nav a:hover {
 }
 
 .step-number {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: #ddd;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 10px;
+    margin: 0 auto 6px;
     font-weight: bold;
+    font-size: 13px;
+}
+
+.step.active .step-number {
+    background: #764ba2;
+}
+
+.step.completed .step-number {
+    background: #4caf50;
+}
+
+.step-title {
+    font-size: 11px;
+    color: #666;
 }
 
 .step.active .step-number {
@@ -366,18 +392,27 @@ nav a:hover {
 
 .success-message {
     text-align: center;
-    padding: 40px;
+    padding: 15px;
+}
+
+.success-message h2 {
+    font-size: 18px;
+}
+
+.success-message p {
+    margin: 10px 0 !important;
+    font-size: 13px;
 }
 
 .success-icon {
-    font-size: 64px;
+    font-size: 40px;
     color: #4caf50;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .btn-secondary {
     background: #666;
-    margin-top: 10px;
+    margin-top: 6px;
 }
 
 .btn-secondary:hover {
