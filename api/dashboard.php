@@ -1,166 +1,351 @@
 <?php
+// Dashboard API - Simple and clean
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
 
 require_once 'config/Database.php';
 
-// Handle preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
+// Handle OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit(0);
+
+// Simple response functions
+function success($data = []) {
+    echo json_encode(['success' => true, 'data' => $data]);
+    exit;
 }
 
-session_start();
-
-// Check if user is logged in as admin
-if (!isset($_SESSION['admin_id'])) {
-    sendJsonResponse(['error' => 'Admin access required'], 403);
-    return;
+function error($message, $code = 400) {
+    http_response_code($code);
+    echo json_encode(['success' => false, 'error' => $message]);
+    exit;
 }
 
-$database = Database::getInstance();
-$conn = $database->getConnection();
-
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    getDashboardStats($conn);
-} else {
-    sendJsonResponse(['error' => 'Method not allowed'], 405);
+// Connect to database
+try {
+    $conn = Database::getInstance()->getConnection();
+    if (!$conn) {
+        error('Database connection failed', 500);
+    }
+} catch (Exception $e) {
+    error('Database connection error: ' . $e->getMessage(), 500);
 }
 
+// Get dashboard statistics
 function getDashboardStats($conn) {
     $stats = [];
 
     // Total bookings
-    $total_bookings_sql = "SELECT COUNT(*) as total FROM Booking";
-    $result = $conn->query($total_bookings_sql);
-    $stats['total_bookings'] = $result->fetch_assoc()['total'];
+    $result = $conn->query("SELECT COUNT(*) as count FROM booking");
+    $stats['total_bookings'] = $result->fetch_assoc()['count'] ?? 0;
 
-    // Active bookings today
-    $active_today_sql = "SELECT COUNT(*) as active FROM Booking
-                         WHERE DATE(start_date) = CURDATE() AND status = 'confirmed'";
-    $result = $conn->query($active_today_sql);
-    $stats['active_today'] = $result->fetch_assoc()['active'];
+    // Active today (bookings that are active today)
+    $result = $conn->query("SELECT COUNT(*) as count FROM booking WHERE status = 'confirmed' AND (start_date <= CURDATE() AND end_date >= CURDATE())");
+    $stats['active_today'] = $result->fetch_assoc()['count'] ?? 0;
 
     // Total rooms
-    $total_rooms_sql = "SELECT COUNT(*) as total FROM Rooms";
-    $result = $conn->query($total_rooms_sql);
-    $stats['total_rooms'] = $result->fetch_assoc()['total'];
+    $result = $conn->query("SELECT COUNT(*) as count FROM rooms");
+    $stats['total_rooms'] = $result->fetch_assoc()['count'] ?? 0;
 
-    // Available rooms
-    $available_rooms_sql = "SELECT COUNT(*) as available FROM Rooms WHERE status = 'available'";
-    $result = $conn->query($available_rooms_sql);
-    $stats['available_rooms'] = $result->fetch_assoc()['available'];
+    // Room details
+    $roomResult = $conn->query("SELECT r.id, r.room_name, r.price, r.status,
+                                       COUNT(b.id) as today_bookings
+                                FROM rooms r
+                                LEFT JOIN booking b ON r.id = b.room_id
+                                    AND b.status = 'confirmed'
+                                    AND (b.start_date <= CURDATE() AND b.end_date >= CURDATE())
+                                GROUP BY r.id ORDER BY r.room_name");
 
-    // Total customers
-    $total_customers_sql = "SELECT COUNT(*) as total FROM Users";
-    $result = $conn->query($total_customers_sql);
-    $stats['total_customers'] = $result->fetch_assoc()['total'];
-
-    // New customers this month
-    $new_customers_sql = "SELECT COUNT(*) as new FROM Users
-                          WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())";
-    $result = $conn->query($new_customers_sql);
-    $stats['new_customers_month'] = $result->fetch_assoc()['new'];
-
-    // Room status details
-    $room_status_sql = "SELECT r.id, r.room_name, r.capacity, r.price, r.status,
-                        COUNT(b.id) as today_bookings
-                        FROM Rooms r
-                        LEFT JOIN Booking b ON r.id = b.room_id AND DATE(b.start_date) = CURDATE()
-                        GROUP BY r.id
-                        ORDER BY r.room_name";
-    $result = $conn->query($room_status_sql);
-
-    $room_details = [];
-    while ($row = $result->fetch_assoc()) {
-        $room_details[] = [
-            'id' => $row['id'],
-            'room_name' => $row['room_name'],
-            'capacity' => $row['capacity'] ?? 0,
-            'price' => (int)$row['price'],
-            'status' => $row['status'],
-            'today_bookings' => (int)$row['today_bookings']
+    $stats['room_details'] = [];
+    while ($room = $roomResult->fetch_assoc()) {
+        $stats['room_details'][] = [
+            'id' => (int)$room['id'],
+            'name' => $room['room_name'],
+            'price' => formatCurrency($room['price']),
+            'status' => $room['status'],
+            'status_class' => $room['status'] === 'available' ? 'available' : 'occupied',
+            'today_bookings' => $room['today_bookings'] . ' ' . ($room['today_bookings'] == 1 ? 'booking' : 'bookings')
         ];
     }
-    $stats['room_details'] = $room_details;
 
     // Recent bookings
-    $recent_bookings_sql = "SELECT b.id, b.name, b.email, b.start_date, b.end_date, b.status, b.price,
-                            r.room_name
-                            FROM Booking b
-                            LEFT JOIN Rooms r ON b.room_id = r.id
-                            ORDER BY b.created_at DESC
-                            LIMIT 5";
-    $result = $conn->query($recent_bookings_sql);
+    $bookingResult = $conn->query("SELECT b.id, u.name as customer_name, u.email,
+                                          r.room_name, b.start_date, b.end_date, b.status, b.price
+                                   FROM booking b
+                                   JOIN users u ON b.user_id = u.id
+                                   JOIN rooms r ON b.room_id = r.id
+                                   ORDER BY b.created_at DESC LIMIT 5");
 
-    $recent_bookings = [];
-    while ($row = $result->fetch_assoc()) {
-        $recent_bookings[] = [
-            'id' => $row['id'],
-            'name' => $row['name'],
-            'email' => $row['email'],
-            'room_name' => $row['room_name'],
-            'start_date' => $row['start_date'],
-            'end_date' => $row['end_date'],
-            'status' => $row['status'],
-            'price' => (int)$row['price']
+    $stats['recent_bookings'] = [];
+    while ($booking = $bookingResult->fetch_assoc()) {
+        $stats['recent_bookings'][] = [
+            'id' => '#BK' . str_pad($booking['id'], 3, '0', STR_PAD_LEFT),
+            'customer' => $booking['customer_name'],
+            'email' => $booking['email'],
+            'room' => $booking['room_name'],
+            'start_date' => formatDate($booking['start_date']),
+            'end_date' => formatDate($booking['end_date']),
+            'status' => ucfirst($booking['status']),
+            'status_class' => $booking['status'] === 'confirmed' ? 'available' : 'pending',
+            'amount' => formatCurrency($booking['price'])
         ];
     }
-    $stats['recent_bookings'] = $recent_bookings;
 
-    // Customer statistics
-    $customer_stats_sql = "SELECT u.id, u.name, u.email, u.no_telp,
-                           COUNT(b.id) as total_bookings,
-                           COALESCE(SUM(b.price), 0) as total_spent,
-                           MAX(b.created_at) as last_booking
-                           FROM Users u
-                           LEFT JOIN Booking b ON u.id = b.user_id
-                           GROUP BY u.id
-                           ORDER BY total_bookings DESC
-                           LIMIT 5";
-    $result = $conn->query($customer_stats_sql);
-
-    $customer_stats = [];
-    while ($row = $result->fetch_assoc()) {
-        $customer_stats[] = [
-            'id' => $row['id'],
-            'name' => $row['name'],
-            'email' => $row['email'],
-            'phone' => $row['no_telp'],
-            'total_bookings' => (int)$row['total_bookings'],
-            'total_spent' => (int)$row['total_spent'],
-            'last_booking' => $row['last_booking']
-        ];
-    }
-    $stats['top_customers'] = $customer_stats;
-
-    // Monthly revenue
-    $monthly_revenue_sql = "SELECT MONTH(created_at) as month, SUM(price) as revenue
-                            FROM Booking
-                            WHERE status = 'confirmed' AND YEAR(created_at) = YEAR(CURDATE())
-                            GROUP BY MONTH(created_at)
-                            ORDER BY month";
-    $result = $conn->query($monthly_revenue_sql);
-
-    $monthly_revenue = [];
-    while ($row = $result->fetch_assoc()) {
-        $monthly_revenue[] = [
-            'month' => (int)$row['month'],
-            'revenue' => (int)$row['revenue']
-        ];
-    }
-    $stats['monthly_revenue'] = $monthly_revenue;
-
-    sendJsonResponse([
-        'success' => true,
-        'stats' => $stats
-    ]);
+    return $stats;
 }
 
-function sendJsonResponse($data, $statusCode = 200) {
-    http_response_code($statusCode);
-    echo json_encode($data);
-    exit();
+// Get customers data
+function getCustomersData($conn) {
+    try {
+        $customers = [];
+
+        // Get all customers with their booking statistics
+        $query = "SELECT u.id, u.name, u.email, u.no_telp,
+                         COUNT(b.id) as total_bookings,
+                         COALESCE(SUM(b.price), 0) as total_spent
+                  FROM users u
+                  LEFT JOIN booking b ON u.id = b.user_id
+                  GROUP BY u.id
+                  ORDER BY u.id DESC";
+
+        $result = $conn->query($query);
+        if (!$result) {
+            throw new Exception("Query failed: " . $conn->error);
+        }
+
+        while ($customer = $result->fetch_assoc()) {
+            $customers[] = [
+                'id' => (int)$customer['id'],
+                'name' => $customer['name'],
+                'email' => $customer['email'],
+                'phone' => $customer['no_telp'],
+                'total_bookings' => (int)$customer['total_bookings'],
+                'total_spent' => formatCurrency($customer['total_spent']),
+                'join_date' => 'N/A', // Since created_at doesn't exist
+                'status' => $customer['total_bookings'] > 0 ? 'Active' : 'Inactive'
+            ];
+        }
+
+        // Get statistics
+        $stats = [];
+        $stats['total_customers'] = count($customers);
+
+        $activeThisMonth = 0;
+        $currentMonth = date('Y-m');
+        foreach ($customers as $customer) {
+            $bookingQuery = "SELECT COUNT(*) as count FROM booking
+                           WHERE user_id = {$customer['id']}
+                           AND DATE_FORMAT(created_at, '%Y-%m') = '$currentMonth'";
+            $bookingResult = $conn->query($bookingQuery);
+            if ($bookingResult) {
+                $count = $bookingResult->fetch_assoc()['count'] ?? 0;
+                if ($count > 0) $activeThisMonth++;
+            }
+        }
+        $stats['active_this_month'] = $activeThisMonth;
+
+        return ['customers' => $customers, 'stats' => $stats];
+    } catch (Exception $e) {
+        throw new Exception("Error getting customers data: " . $e->getMessage());
+    }
+}
+
+// Get rooms data
+function getRoomsData($conn) {
+    try {
+        $rooms = [];
+
+        // Get all rooms with booking statistics (without image_url from database)
+        $query = "SELECT r.id, r.room_name, r.price, r.description, r.status,
+                         COUNT(b.id) as total_bookings,
+                         COUNT(CASE WHEN DATE(b.created_at) = CURDATE() THEN 1 END) as today_bookings
+                  FROM rooms r
+                  LEFT JOIN booking b ON r.id = b.room_id
+                  GROUP BY r.id
+                  ORDER BY r.room_name";
+
+        $result = $conn->query($query);
+        if (!$result) {
+            throw new Exception("Query failed: " . $conn->error);
+        }
+
+        while ($room = $result->fetch_assoc()) {
+            // Generate hardcoded image path based on room name
+            $imageUrl = getHardcodedImagePath($room['room_name']);
+
+            $rooms[] = [
+                'id' => (int)$room['id'],
+                'name' => $room['room_name'],
+                'price' => formatCurrency($room['price']),
+                'description' => $room['description'],
+                'image_url' => $imageUrl,
+                'status' => $room['status'],
+                'status_class' => $room['status'] === 'available' ? 'available' : 'occupied',
+                'total_bookings' => (int)$room['total_bookings'],
+                'today_bookings' => (int)$room['today_bookings']
+            ];
+        }
+
+        // Get statistics
+        $stats = [];
+        $stats['total_rooms'] = count($rooms);
+
+        $availableRooms = 0;
+        $occupiedRooms = 0;
+        $totalTodayBookings = 0;
+
+        foreach ($rooms as $room) {
+            if ($room['status'] === 'available') {
+                $availableRooms++;
+            } else {
+                $occupiedRooms++;
+            }
+            $totalTodayBookings += $room['today_bookings'];
+        }
+
+        $stats['available_rooms'] = $availableRooms;
+        $stats['occupied_rooms'] = $occupiedRooms;
+        $stats['total_today_bookings'] = $totalTodayBookings;
+
+        return ['rooms' => $rooms, 'stats' => $stats];
+    } catch (Exception $e) {
+        throw new Exception("Error getting rooms data: " . $e->getMessage());
+    }
+}
+
+// Route request
+$action = $_GET['action'] ?? 'stats';
+
+try {
+    switch ($action) {
+        case 'stats':
+            success(getDashboardStats($conn));
+            break;
+        case 'customers':
+            success(getCustomersData($conn));
+            break;
+        case 'user':
+            $userId = $_GET['id'] ?? null;
+            if (!$userId) {
+                error('User ID is required', 400);
+            } else {
+                success(getUserById($conn, $userId));
+            }
+            break;
+        case 'rooms':
+            success(getRoomsData($conn));
+            break;
+        case 'delete_customer':
+            $userId = $_GET['id'] ?? null;
+            if (!$userId) {
+                error('User ID is required', 400);
+            } else {
+                deleteCustomer($conn, $userId);
+            }
+            break;
+        default:
+            error('Invalid action', 400);
+    }
+} catch (Exception $e) {
+    error("API Error: " . $e->getMessage(), 500);
+}
+
+function getUserById($conn, $userId) {
+    $sql = "SELECT id, name, no_telp, email FROM users WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $user = $result->fetch_assoc();
+        // Map database fields to frontend-friendly names
+        return [
+            'id' => $user['id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'phone' => $user['no_telp']  // Map no_telp to phone for frontend consistency
+        ];
+    }
+
+    return null;
+}
+
+function deleteCustomer($conn, $userId) {
+    // Check if customer has any bookings
+    $checkBookings = "SELECT COUNT(*) as booking_count FROM bookings WHERE user_id = ?";
+    $stmt = $conn->prepare($checkBookings);
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $bookingCount = $result->fetch_assoc()['booking_count'];
+
+    if ($bookingCount > 0) {
+        error('Cannot delete customer with existing bookings', 400);
+        return;
+    }
+
+    // Delete the customer
+    $sql = "DELETE FROM users WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $userId);
+
+    if ($stmt->execute()) {
+        success(['message' => 'Customer deleted successfully']);
+    } else {
+        error('Failed to delete customer', 500);
+    }
+}
+
+// IMAGE MAPPING FUNCTION
+function getHardcodedImagePath($roomName) {
+    // Map room names to their corresponding image files
+    $roomImageMap = [
+        'Meeting Room' => 'assets/img/meetingroom.jpg',
+        'Private Office' => 'assets/img/privateoffice.jpg',
+        'Class Room' => 'assets/img/classroom.jpg',
+        'Coworking Space' => 'assets/img/coworkingspace.jpg',
+        'Event Room' => 'assets/img/eventspace.jpg',
+        'Virtual Office' => 'assets/img/virtualoffice.jpg',
+        // Variations and partial matches
+        'Co-Working Space' => 'assets/img/coworkingspace.jpg',
+        'Event Space' => 'assets/img/eventspace.jpg',
+        // Default fallback for any room names not in the map
+        'default' => 'assets/img/meetingroom.jpg'
+    ];
+
+    // Clean up room name for matching (case insensitive, trim spaces)
+    $cleanRoomName = trim(strtolower($roomName));
+
+    // Create a case-insensitive lookup map
+    $lowerCaseMap = array_change_key_case($roomImageMap, CASE_LOWER);
+
+    // Try to find exact match first
+    if (isset($lowerCaseMap[$cleanRoomName])) {
+        return $lowerCaseMap[$cleanRoomName];
+    }
+
+    // Try partial matching for room names that contain our keywords
+    foreach ($lowerCaseMap as $key => $path) {
+        if ($key !== 'default' && strpos($cleanRoomName, $key) !== false) {
+            return $path;
+        }
+    }
+
+    // Return default image if no match found
+    return $roomImageMap['default'];
+}
+
+// Helper functions
+function formatCurrency($amount) {
+    return 'Rp ' . number_format($amount, 0, ',', '.');
+}
+
+function formatDate($date) {
+    return date('d M Y', strtotime($date));
 }
 ?>
