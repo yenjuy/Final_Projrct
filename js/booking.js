@@ -476,7 +476,6 @@ function getStatusBadge(status) {
         'unavailable': { text: 'Unavailable', class: 'badge-occupied' },
 
         // Booking statuses
-        'pending': { text: 'Pending', class: 'badge-pending' },
         'confirmed': { text: 'Confirmed', class: 'badge-available' },
         'cancelled': { text: 'Cancelled', class: 'badge-occupied' }
     };
@@ -489,12 +488,11 @@ function getStatusBadge(status) {
 function getStatusLineClass(status) {
     const statusLineMap = {
         // Booking statuses
-        'pending': 'status-line-pending',
         'confirmed': 'status-line-confirmed',
         'cancelled': 'status-line-cancelled'
     };
 
-    return statusLineMap[status.toLowerCase()] || 'status-line-pending';
+    return statusLineMap[status.toLowerCase()] || 'status-line-confirmed';
 }
 
 // Render rooms
@@ -744,7 +742,7 @@ async function renderStep3() {
             start_date: bookingData.checkIn,
             end_date: bookingData.checkOut,
             price: total,
-            payment: bookingData.paymentMethod
+            payment_method: bookingData.paymentMethod
         };
 
         
@@ -937,7 +935,6 @@ function renderBookings(filter) {
     if (filteredBookings.length === 0) {
         const emptyMessages = {
             'all': 'No bookings found',
-            'pending': 'No pending bookings',
             'confirmed': 'No confirmed bookings',
             'cancelled': 'No cancelled bookings'
         };
@@ -950,7 +947,7 @@ function renderBookings(filter) {
 
         const statusLineClass = getStatusLineClass(booking.status);
 
-        const cancelButton = (booking.status === 'confirmed' || booking.status === 'pending') ?
+        const cancelButton = (booking.status === 'confirmed') ?
             `<button class="btn btn-cancel" onclick="cancelBooking('${booking.id.substring(2)}', '${booking.roomName}')">Cancel</button>` : '';
 
         return `

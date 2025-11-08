@@ -255,14 +255,17 @@ class DashboardController {
             customersTableBody.innerHTML = '';
             data.customers.forEach(customer => {
                 const row = document.createElement('tr');
+                const canDelete = customer.customer_type === 'Registered';
+
                 row.innerHTML = `
                     <td>${customer.name}</td>
                     <td>${customer.email}</td>
                     <td>${customer.phone || '-'}</td>
                     <td>${customer.total_bookings} bookings</td>
+                    <td>${customer.total_spent}</td>
                     <td>
-                        <button class="btn-small btn-view" onclick="dashboard.showCustomerDetail(${customer.id})">View</button>
-                        <button class="btn-small btn-delete" onclick="dashboard.deleteCustomer(${customer.id})">Delete</button>
+                        <button class="btn-small btn-view" onclick="dashboard.showCustomerDetail(${JSON.stringify(customer).replace(/"/g, '&quot;')})">View</button>
+                        ${canDelete ? `<button class="btn-small btn-delete" onclick="dashboard.deleteCustomer(${customer.id})">Delete</button>` : ''}
                     </td>
                 `;
                 customersTableBody.appendChild(row);
@@ -389,7 +392,6 @@ class DashboardController {
                     <h1>Bookings Management</h1>
                     <p class="header-subtitle">Welcome back, Admin!</p>
                 </div>
-                <button class="btn-header" onclick="dashboard.showAddBookingModal()">+ New Booking</button>
             </div>
 
             <div class="stats-grid">
@@ -452,7 +454,7 @@ class DashboardController {
                             <td>Virtual Office</td>
                             <td>27 Oct 2025</td>
                             <td>30 Oct 2025</td>
-                            <td><span class="status-badge pending">Pending</span></td>
+                            <td><span class="status-badge confirmed">Confirmed</span></td>
                             <td>Rp 2,800,000</td>
                             <td><button class="btn-small" onclick="dashboard.showBookingDetail('BK003')">View</button></td>
                         </tr>
@@ -572,45 +574,12 @@ class DashboardController {
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Total Bookings</th>
+                            <th>Total Spent</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>PT. Teknologi Maju</td>
-                            <td>info@teknologimaju.com</td>
-                            <td>+62 21 1234567</td>
-                            <td>15 bookings</td>
-                            <td><button class="btn-small" onclick="dashboard.showCustomerDetail('teknologi-maju')">View</button></td>
-                        </tr>
-                        <tr>
-                            <td>CV. Digital Creative</td>
-                            <td>contact@digitalcreative.id</td>
-                            <td>+62 21 9876543</td>
-                            <td>8 bookings</td>
-                            <td><button class="btn-small" onclick="dashboard.showCustomerDetail('digital-creative')">View</button></td>
-                        </tr>
-                        <tr>
-                            <td>Startup Indonesia</td>
-                            <td>hello@startupid.com</td>
-                            <td>+62 812 3456789</td>
-                            <td>22 bookings</td>
-                            <td><button class="btn-small" onclick="dashboard.showCustomerDetail('startup-indonesia')">View</button></td>
-                        </tr>
-                        <tr>
-                            <td>Konsultan Bisnis</td>
-                            <td>admin@konsultanbisnis.co.id</td>
-                            <td>+62 21 5551234</td>
-                            <td>5 bookings</td>
-                            <td><button class="btn-small" onclick="dashboard.showCustomerDetail('konsultan-bisnis')">View</button></td>
-                        </tr>
-                        <tr>
-                            <td>PT. Sukses Makmur</td>
-                            <td>cs@suksesmakmur.com</td>
-                            <td>+62 21 7778888</td>
-                            <td>18 bookings</td>
-                            <td><button class="btn-small" onclick="dashboard.showCustomerDetail('sukses-makmur')">View</button></td>
-                        </tr>
+                        <!-- Customer data will be loaded dynamically -->
                     </tbody>
                 </table>
             </div>
@@ -651,7 +620,7 @@ class DashboardController {
         }
     }
 
-    async showCustomerDetail(customerId) {
+    async showCustomerDetail(customerDataOrId) {
         try {
             // Show loading modal
             const modalBody = document.getElementById('modalBody');
@@ -664,23 +633,48 @@ class DashboardController {
             `;
             document.getElementById('detailModal').style.display = 'block';
 
-            // Get customer data from API
-            const customerResponse = await fetch(`../api/dashboard.php?action=user&id=${customerId}`);
-            const customerResult = await customerResponse.json();
+            let customer, bookingData;
 
-            if (!customerResult.success) {
-                this.closeModal();
-                this.showNotification('Customer not found', 'error');
-                return;
+            // Check if the parameter is an object (for direct calls) or string (for legacy calls)
+            if (typeof customerDataOrId === 'object') {
+                customer = customerDataOrId;
+
+                // Get booking history based on customer type
+                if (customer.id && typeof customer.id === 'number') {
+                    // Registered user
+                    const bookingResponse = await fetch(`../api/bookings.php?action=user_bookings&user_id=${customer.id}`);
+                    const bookingResult = await bookingResponse.json();
+                    bookingData = bookingResult.success ? bookingResult.data : [];
+                } else if (customer.customer_type === 'Guest') {
+                    // Guest customer - search by name/email
+                    const allBookingsResponse = await fetch(`../api/bookings.php`);
+                    const allBookingsResult = await allBookingsResponse.json();
+                    if (allBookingsResult.success) {
+                        bookingData = allBookingsResult.data.filter(booking =>
+                            booking.name === customer.name &&
+                            booking.email === customer.email
+                        );
+                    }
+                }
+            } else {
+                // Legacy behavior - fetch customer by ID
+                const customerResponse = await fetch(`../api/dashboard.php?action=user&id=${customerDataOrId}`);
+                const customerResult = await customerResponse.json();
+
+                if (!customerResult.success) {
+                    this.closeModal();
+                    this.showNotification('Customer not found', 'error');
+                    return;
+                }
+                customer = customerResult.data;
+
+                // Get customer bookings from API
+                const bookingResponse = await fetch(`../api/bookings.php?action=user_bookings&user_id=${customerDataOrId}`);
+                const bookingResult = await bookingResponse.json();
+                bookingData = bookingResult.success ? bookingResult.data : [];
             }
 
-            // Get customer bookings from API
-            const bookingResponse = await fetch(`../api/bookings.php?action=user_bookings&user_id=${customerId}`);
-            const bookingResult = await bookingResponse.json();
-
-            const bookingData = bookingResult.success ? bookingResult.data : [];
-
-            this.showCustomerDetailModal(customerResult.data, bookingData);
+            this.showCustomerDetailModal(customer, bookingData);
 
         } catch (error) {
             console.error('Error loading customer details:', error);
@@ -895,7 +889,7 @@ class DashboardController {
                 <div class="detail-item"><label>End Date:</label><span>${new Date(booking.end_date).toLocaleDateString('id-ID')}</span></div>
                 <div class="detail-item"><label>Duration:</label><span>${duration} day${duration > 1 ? 's' : ''}</span></div>
                 <div class="detail-item"><label>Total Price:</label><span>Rp ${parseInt(booking.price || 0).toLocaleString('id-ID')}</span></div>
-                <div class="detail-item"><label>Payment Method:</label><span>${booking.payment || 'Not specified'}</span></div>
+                <div class="detail-item"><label>Payment Method:</label><span>${booking.payment_method || 'Not specified'}</span></div>
                 <div class="detail-item"><label>Created:</label><span>${new Date(booking.created_at).toLocaleDateString('id-ID')}</span></div>
             </div>
             <div class="modal-actions">
@@ -1087,19 +1081,18 @@ class DashboardController {
                     </div>
                     <div class="detail-item">
                         <label>Payment Method:</label>
-                        <select name="payment" required style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%;">
+                        <select name="payment_method" required style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%;">
                             <option value="">Select payment method</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Transfer">Bank Transfer</option>
-                            <option value="Credit Card">Credit Card</option>
-                            <option value="E-Wallet">E-Wallet</option>
+                            <option value="cash">Cash</option>
+                            <option value="bank">Bank Transfer</option>
+                            <option value="credit">Credit Card</option>
+                            <option value="ewallet">E-Wallet</option>
                         </select>
                     </div>
                     <div class="detail-item full-width">
                         <label>Status:</label>
                         <select name="status" required style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%;">
                             <option value="confirmed">Confirmed</option>
-                            <option value="pending">Pending</option>
                             <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
@@ -1174,7 +1167,7 @@ class DashboardController {
                 start_date: formData.get('start_date'),
                 end_date: formData.get('end_date'),
                 price: parseInt(formData.get('price')),
-                payment: formData.get('payment'),
+                payment_method: formData.get('payment_method'),
                 status: formData.get('status')
             };
 

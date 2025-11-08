@@ -98,7 +98,7 @@ function handleGetUserBookings($conn, $userId) {
 function handleCreateBooking($conn) {
     $data = getRequestData();
 
-    $required = ['room_id', 'name', 'email', 'phone_number', 'start_date', 'end_date', 'price'];
+    $required = ['room_id', 'name', 'email', 'phone_number', 'start_date', 'end_date', 'price', 'payment_method'];
     if (!validateRequired($data, $required)) {
         return;
     }
@@ -113,19 +113,25 @@ function handleCreateBooking($conn) {
         return;
     }
 
+    // Validate payment_method against ENUM values
+    $validPaymentMethods = ['cash', 'credit', 'bank', 'ewallet'];
+    if (!in_array($data['payment_method'], $validPaymentMethods)) {
+        sendError('Invalid payment method. Must be one of: ' . implode(', ', $validPaymentMethods), 400);
+        return;
+    }
+
     $bookingData = prepareBookingData($conn, $data, $userId);
 
     try {
-        $paymentId = createPaymentRecord($conn, $bookingData['price'], $bookingData['payment']);
-
-        $bookingData['payment_id'] = $paymentId;
         $bookingId = createBookingInDB($conn, $bookingData);
 
         if ($bookingId) {
             sendSuccess([
                 'message' => 'Booking created successfully',
                 'booking_id' => $bookingId,
-                'payment_id' => $paymentId
+                'data' => [
+                    'booking_id' => $bookingId
+                ]
             ]);
         } else {
             sendError('Failed to create booking', 500);
@@ -167,8 +173,6 @@ function handleUpdateBooking($conn, $id) {
     }
 
     try {
-        updatePaymentStatus($conn, $id, $data['status']);
-
         $success = updateBookingStatus($conn, $id, $data['status']);
 
         if ($success) {
@@ -262,34 +266,20 @@ function getUserBookingsFromDB($conn, $userId) {
     return $bookings;
 }
 
-function createPaymentRecord($conn, $price, $paymentMethod = 'pending') {
-    $sql = "INSERT INTO payments (price, payment_method, status) VALUES (?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-
-    $status = 'pending';
-    $stmt->bind_param("iss", $price, $paymentMethod, $status);
-
-    if (!$stmt->execute()) {
-        throw new Exception('Failed to create payment record: ' . $stmt->error);
-    }
-
-    return $conn->insert_id;
-}
 
 function createBookingInDB($conn, $bookingData) {
-    $sql = "INSERT INTO booking (user_id, room_id, payment_id, name, email, phone_number,
+    $sql = "INSERT INTO booking (user_id, room_id, name, email, phone_number,
             start_date, end_date, price, payment, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
         throw new Exception('Failed to prepare booking statement: ' . $conn->error);
     }
 
-    $stmt->bind_param("iiisssssiss",
+    $stmt->bind_param("iisssssiss",
         $bookingData['user_id'],
         $bookingData['room_id'],
-        $bookingData['payment_id'],
         $bookingData['name'],
         $bookingData['email'],
         $bookingData['phone_number'],
@@ -310,8 +300,8 @@ function createBookingInDB($conn, $bookingData) {
 
 function updateBookingStatus($conn, $id, $status) {
     $status = strtolower($status);
-    if ($status !== 'pending' && $status !== 'confirmed' && $status !== 'cancelled') {
-        throw new Exception('Invalid booking status. Only pending, confirmed, or cancelled are allowed.');
+    if ($status !== 'confirmed' && $status !== 'cancelled') {
+        throw new Exception('Invalid booking status. Only confirmed or cancelled are allowed.');
     }
 
     $sql = "UPDATE booking SET status = ? WHERE id = ?";
@@ -320,18 +310,6 @@ function updateBookingStatus($conn, $id, $status) {
     return $stmt->execute();
 }
 
-function updatePaymentStatus($conn, $bookingId, $bookingStatus) {
-    $paymentStatus = match($bookingStatus) {
-        'confirmed' => 'completed',
-        'cancelled' => 'refunded',
-        default => 'pending'
-    };
-
-    $sql = "UPDATE payments SET status = ? WHERE id = (SELECT payment_id FROM booking WHERE id = ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("si", $paymentStatus, $bookingId);
-    return $stmt->execute();
-}
 
 function deleteBookingFromDB($conn, $id) {
     $sql = "DELETE FROM booking WHERE id = ?";
@@ -368,7 +346,7 @@ function prepareBookingData($conn, $data, $userId) {
         'start_date' => sanitize($conn, $data['start_date']),
         'end_date' => sanitize($conn, $data['end_date']),
         'price' => (int)$data['price'],
-        'payment' => sanitize($conn, $data['payment'] ?? 'pending'),
+        'payment' => sanitize($conn, $data['payment_method']),
         'status' => 'confirmed'
     ];
 }
@@ -378,14 +356,13 @@ function formatBookingWithDetails($booking) {
         'id' => (int)$booking['id'],
         'user_id' => (int)$booking['user_id'],
         'room_id' => (int)$booking['room_id'],
-        'payment_id' => (int)$booking['payment_id'],
         'name' => $booking['name'],
         'email' => $booking['email'],
         'phone_number' => $booking['phone_number'],
         'start_date' => $booking['start_date'],
         'end_date' => $booking['end_date'],
         'price' => (int)$booking['price'],
-        'payment' => $booking['payment'],
+        'payment_method' => $booking['payment'], // Map dari database 'payment' ke 'payment_method' untuk frontend
         'status' => $booking['status'],
         'room_name' => $booking['room_name'],
         'user_name' => $booking['user_name'],
@@ -399,14 +376,13 @@ function formatBookingData($booking) {
         'id' => (int)$booking['id'],
         'user_id' => (int)$booking['user_id'],
         'room_id' => (int)$booking['room_id'],
-        'payment_id' => (int)$booking['payment_id'],
         'name' => $booking['name'],
         'email' => $booking['email'],
         'phone_number' => $booking['phone_number'],
         'start_date' => $booking['start_date'],
         'end_date' => $booking['end_date'],
         'price' => (int)$booking['price'],
-        'payment' => $booking['payment'],
+        'payment_method' => $booking['payment'], // Map dari database 'payment' ke 'payment_method' untuk frontend
         'status' => $booking['status'],
         'room_name' => $booking['room_name'],
         'created_at' => $booking['created_at']

@@ -193,11 +193,10 @@ const Utils = {
         const statusMap = {
             'available': 'available',
             'unavailable': 'occupied',
-            'pending': 'pending',
             'confirmed': 'available',
             'cancelled': 'occupied'
         };
-        return statusMap[status.toLowerCase()] || 'pending';
+        return statusMap[status.toLowerCase()] || 'available';
     },
 
     // UI utilities

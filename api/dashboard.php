@@ -90,7 +90,7 @@ function getDashboardStats($conn) {
             'start_date' => formatDate($booking['start_date']),
             'end_date' => formatDate($booking['end_date']),
             'status' => ucfirst($booking['status']),
-            'status_class' => $booking['status'] === 'confirmed' ? 'available' : 'pending',
+            'status_class' => $booking['status'] === 'confirmed' ? 'available' : 'cancelled',
             'amount' => formatCurrency($booking['price'])
         ];
     }
@@ -103,14 +103,45 @@ function getCustomersData($conn) {
     try {
         $customers = [];
 
-        // Get all customers with their booking statistics
-        $query = "SELECT u.id, u.name, u.email, u.no_telp,
-                         COUNT(b.id) as total_bookings,
-                         COALESCE(SUM(b.price), 0) as total_spent
-                  FROM users u
-                  LEFT JOIN booking b ON u.id = b.user_id
-                  GROUP BY u.id
-                  ORDER BY u.id DESC";
+        // Get all unique customers from bookings (including those without user accounts)
+        // This captures all customers who have ever made a booking, whether they have an account or not
+        $query = "SELECT
+                    MIN(u.id) as user_id,
+                    CASE
+                        WHEN MIN(u.id) IS NOT NULL THEN MIN(u.name)
+                        ELSE MIN(b.name)
+                    END as name,
+                    CASE
+                        WHEN MIN(u.id) IS NOT NULL THEN MIN(u.email)
+                        ELSE MIN(b.email)
+                    END as email,
+                    CASE
+                        WHEN MIN(u.id) IS NOT NULL THEN MIN(u.no_telp)
+                        ELSE MIN(b.phone_number)
+                    END as phone,
+                    COUNT(b.id) as total_bookings,
+                    COALESCE(SUM(b.price), 0) as total_spent,
+                    MAX(b.created_at) as latest_booking_date
+                  FROM booking b
+                  LEFT JOIN users u ON b.user_id = u.id
+                  GROUP BY
+                    CASE
+                        WHEN u.id IS NOT NULL THEN u.id
+                        ELSE b.id
+                    END,
+                    CASE
+                        WHEN u.id IS NOT NULL THEN u.name
+                        ELSE b.name
+                    END,
+                    CASE
+                        WHEN u.id IS NOT NULL THEN u.email
+                        ELSE b.email
+                    END,
+                    CASE
+                        WHEN u.id IS NOT NULL THEN u.no_telp
+                        ELSE b.phone_number
+                    END
+                  ORDER BY latest_booking_date DESC";
 
         $result = $conn->query($query);
         if (!$result) {
@@ -119,14 +150,15 @@ function getCustomersData($conn) {
 
         while ($customer = $result->fetch_assoc()) {
             $customers[] = [
-                'id' => (int)$customer['id'],
+                'id' => $customer['user_id'] ? (int)$customer['user_id'] : 'GUEST_' . rand(1000, 9999),
                 'name' => $customer['name'],
                 'email' => $customer['email'],
-                'phone' => $customer['no_telp'],
+                'phone' => $customer['phone'],
                 'total_bookings' => (int)$customer['total_bookings'],
                 'total_spent' => formatCurrency($customer['total_spent']),
-                'join_date' => 'N/A', // Since created_at doesn't exist
-                'status' => $customer['total_bookings'] > 0 ? 'Active' : 'Inactive'
+                'join_date' => 'N/A',
+                'status' => $customer['total_bookings'] > 0 ? 'Active' : 'Inactive',
+                'customer_type' => $customer['user_id'] ? 'Registered' : 'Guest'
             ];
         }
 
@@ -137,9 +169,18 @@ function getCustomersData($conn) {
         $activeThisMonth = 0;
         $currentMonth = date('Y-m');
         foreach ($customers as $customer) {
-            $bookingQuery = "SELECT COUNT(*) as count FROM booking
-                           WHERE user_id = {$customer['id']}
-                           AND DATE_FORMAT(created_at, '%Y-%m') = '$currentMonth'";
+            // For registered users, use user_id; for guests, search by name/email/phone
+            if ($customer['customer_type'] === 'Registered') {
+                $bookingQuery = "SELECT COUNT(*) as count FROM booking
+                               WHERE user_id = {$customer['id']}
+                               AND DATE_FORMAT(created_at, '%Y-%m') = '$currentMonth'";
+            } else {
+                // For guests, search by name, email, or phone to find their bookings
+                $bookingQuery = "SELECT COUNT(*) as count FROM booking
+                               WHERE name = '{$customer['name']}'
+                               AND email = '{$customer['email']}'
+                               AND DATE_FORMAT(created_at, '%Y-%m') = '$currentMonth'";
+            }
             $bookingResult = $conn->query($bookingQuery);
             if ($bookingResult) {
                 $count = $bookingResult->fetch_assoc()['count'] ?? 0;
@@ -276,28 +317,31 @@ function getUserById($conn, $userId) {
 }
 
 function deleteCustomer($conn, $userId) {
-    // Check if customer has any bookings
-    $checkBookings = "SELECT COUNT(*) as booking_count FROM bookings WHERE user_id = ?";
-    $stmt = $conn->prepare($checkBookings);
+    // Check if user exists
+    $checkUser = "SELECT id, name FROM users WHERE id = ?";
+    $stmt = $conn->prepare($checkUser);
     $stmt->bind_param("i", $userId);
     $stmt->execute();
-    $result = $stmt->get_result();
-    $bookingCount = $result->fetch_assoc()['booking_count'];
+    $userResult = $stmt->get_result();
 
-    if ($bookingCount > 0) {
-        error('Cannot delete customer with existing bookings', 400);
+    if ($userResult->num_rows === 0) {
+        error('Customer not found', 404);
         return;
     }
 
-    // Delete the customer
-    $sql = "DELETE FROM users WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $userId);
+    try {
+        // Delete all bookings associated with this customer from booking table only
+        $deleteBookings = "DELETE FROM booking WHERE user_id = ?";
+        $stmt = $conn->prepare($deleteBookings);
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
 
-    if ($stmt->execute()) {
-        success(['message' => 'Customer deleted successfully']);
-    } else {
-        error('Failed to delete customer', 500);
+        $deletedCount = $stmt->affected_rows;
+
+        success(['message' => "Successfully deleted {$deletedCount} booking records for the customer"]);
+
+    } catch (Exception $e) {
+        error('Failed to delete customer bookings: ' . $e->getMessage(), 500);
     }
 }
 

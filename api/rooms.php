@@ -131,11 +131,6 @@ function handleDeleteRoom($conn, $id) {
         return;
     }
 
-    if (hasBookings($conn, $id)) {
-        sendError('Cannot delete room with existing bookings', 400);
-        return;
-    }
-
     $success = deleteRoomFromDB($conn, $id);
 
     if ($success) {
@@ -198,11 +193,28 @@ function updateRoomInDB($conn, $id, $room) {
 }
 
 function deleteRoomFromDB($conn, $id) {
-    $sql = "DELETE FROM rooms WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id);
+    // Check if room has bookings
+    if (hasBookings($conn, $id)) {
+        // Soft delete: Mark room as unavailable and append timestamp to name
+        $timestamp = time();
+        $deleteSuffix = " (Deleted $timestamp)";
 
-    return $stmt->execute();
+        $updateRoom = "UPDATE rooms SET
+                       status = 'unavailable',
+                       room_name = CONCAT(room_name, ?)
+                       WHERE id = ?";
+        $stmt = $conn->prepare($updateRoom);
+        $stmt->bind_param("si", $deleteSuffix, $id);
+
+        return $stmt->execute();
+    } else {
+        // Hard delete if no bookings exist
+        $sql = "DELETE FROM rooms WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+
+        return $stmt->execute();
+    }
 }
 
 function hasBookings($conn, $roomId) {
