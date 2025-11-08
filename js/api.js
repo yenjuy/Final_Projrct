@@ -4,7 +4,18 @@ class ApiService {
     }
 
     getBaseUrl() {
-        return window.location.pathname.includes('/pages/') ? '../api' : './api';
+        const pathname = window.location.pathname;
+
+        if (pathname.includes('/admin/')) {
+            // For admin pages, go up one level to root, then to api
+            return '../api';
+        } else if (pathname.includes('/pages/')) {
+            // For pages, go up one level to root, then to api
+            return '../api';
+        } else {
+            // For root level files
+            return './api';
+        }
     }
 
     async request(endpoint, options = {}) {
@@ -89,7 +100,7 @@ class ApiService {
 
     // Dashboard endpoints
     async getDashboardStats() {
-        return this.request('/dashboard.php');
+        return this.request('/dashboard.php?action=stats');
     }
 }
 
