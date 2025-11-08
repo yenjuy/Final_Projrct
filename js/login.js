@@ -95,82 +95,48 @@ class LoginManager {
     }
 
     async attemptLogin(formData, returnUrl) {
-        try {
-            const response = await api.login(formData.email, formData.password);
-            if (response.success) {
-                const userData = response.user || response.data?.user || response;
-                if (userData) {
-                    this.handleLoginSuccess(userData, formData.remember, returnUrl, 'user');
-                    return;
-                }
-            }
-        } catch (userError) {
-            if (this.isAdminEmail(formData.email)) {
-                await this.attemptAdminLogin(formData, returnUrl);
-            } else {
-                throw userError;
-            }
-        }
-    }
-
-    // Attempt admin login
-    async attemptAdminLogin(formData, returnUrl) {
-        const adminName = formData.email.includes('@') ? formData.email.split('@')[0] : formData.email;
-        const response = await api.adminLogin(adminName, formData.password);
-
+        const response = await api.login(formData.email, formData.password);
         if (response.success) {
-            // Handle different response formats
-            const adminData = response.admin || response.data?.admin || response;
-            if (adminData) {
-                this.handleLoginSuccess(adminData, formData.remember, returnUrl, 'admin');
-            } else {
-                throw new Error('Invalid admin credentials');
+            const userData = response.user || response.data?.user || response;
+            if (userData) {
+                this.handleLoginSuccess(userData, formData.remember, returnUrl);
+                return;
             }
-        } else {
-            throw new Error('Invalid admin credentials');
         }
+        throw new Error('Login failed. Please check your credentials.');
     }
+
 
     // Handle successful login
-    handleLoginSuccess(userData, remember, returnUrl, userType) {
+    handleLoginSuccess(userData, remember, returnUrl) {
         if (!userData || !userData.name) {
             console.error('Invalid user data received:', userData);
             LoginUtils.showNotification('Login failed: Invalid user data', 'error');
             return;
         }
 
-        // Show success notification
-        const successMessage = userType === 'admin' ?
-            'Admin login successful!' :
-            `Login successful! Welcome back, ${userData.name}`;
-
+        const successMessage = `Login successful! Welcome back, ${userData.name}`;
         LoginUtils.showNotification(successMessage, 'success');
 
-        this.storeSession(userData, userType, remember);
+        this.storeSession(userData, remember);
 
         setTimeout(() => {
-            this.redirectUser(returnUrl, userType);
+            this.redirectUser(returnUrl);
         }, 1000);
     }
 
     // Store user session
-    storeSession(userData, userType, remember) {
-        const sessionKey = userType === 'admin' ? 'admin_session' : 'user_session';
-        const tempKey = userType === 'admin' ? 'admin_session_temp' : 'user_session_temp';
-
+    storeSession(userData, remember) {
         if (remember) {
-            // Store in localStorage for persistent login
-            localStorage.setItem(sessionKey, JSON.stringify(userData));
+            localStorage.setItem('user_session', JSON.stringify(userData));
         } else {
-            // Store only in sessionStorage for temporary login
-            sessionStorage.setItem(tempKey, JSON.stringify(userData));
+            sessionStorage.setItem('user_session_temp', JSON.stringify(userData));
         }
     }
 
     // Redirect user after successful login
-    redirectUser(returnUrl, userType) {
-        let redirectUrl = returnUrl ? decodeURIComponent(returnUrl) :
-                       (userType === 'admin' ? 'Dashboard.html' : 'Home.html');
+    redirectUser(returnUrl) {
+        let redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : 'Home.html';
 
         if (redirectUrl.includes('Booking.html')) {
             const separator = redirectUrl.includes('?') ? '&' : '?';
@@ -187,30 +153,23 @@ class LoginManager {
     }
 
     checkExistingSession() {
-        const userSession = this.getExistingSession('user');
-        const adminSession = this.getExistingSession('admin');
+        const userSession = this.getExistingSession();
         const returnUrl = this.getReturnUrl();
 
-        if (adminSession) {
-            this.handleExistingSession('admin', returnUrl);
-        } else if (userSession) {
-            this.handleExistingSession('user', returnUrl);
+        if (userSession) {
+            this.handleExistingSession(returnUrl);
         }
     }
 
-    getExistingSession(userType) {
-        const sessionKey = `${userType}_session`;
-        const tempKey = `${userType}_session_temp`;
-        return JSON.parse(localStorage.getItem(sessionKey) || sessionStorage.getItem(tempKey) || 'null');
+    getExistingSession() {
+        return JSON.parse(localStorage.getItem('user_session') || sessionStorage.getItem('user_session_temp') || 'null');
     }
 
-    handleExistingSession(userType, returnUrl) {
-        const displayName = userType === 'admin' ? 'admin' : 'user';
-        LoginUtils.showNotification(`Already logged in as ${displayName}. Redirecting...`, 'info');
+    handleExistingSession(returnUrl) {
+        LoginUtils.showNotification('Already logged in. Redirecting...', 'info');
 
         setTimeout(() => {
-            const defaultPage = userType === 'admin' ? 'Dashboard.html' : 'Home.html';
-            const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : defaultPage;
+            const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : 'Home.html';
             window.location.href = redirectUrl;
         }, 1500);
     }
@@ -220,10 +179,7 @@ class LoginManager {
         return urlParams.get('return');
     }
 
-    isAdminEmail(email) {
-        return email.toLowerCase().includes('admin') || email === 'admin';
-    }
-
+    
     setLoadingState(button, isLoading) {
         button.disabled = isLoading;
         button.innerHTML = isLoading ?
