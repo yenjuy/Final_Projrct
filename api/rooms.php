@@ -147,7 +147,7 @@ function handleDeleteRoom($conn, $id) {
 
 // DATABASE OPERATIONS
 function getAllRoomsFromDB($conn) {
-    $sql = "SELECT id, room_name, price, description, IFNULL(image_url, 'img/meetingroom.jpg') as image_url, IFNULL(status, 'available') as status FROM rooms ORDER BY room_name";
+    $sql = "SELECT id, room_name, price, description, IFNULL(status, 'available') as status FROM rooms ORDER BY room_name";
     $result = $conn->query($sql);
 
     if (!$result) {
@@ -156,6 +156,8 @@ function getAllRoomsFromDB($conn) {
 
     $rooms = [];
     while ($row = $result->fetch_assoc()) {
+        // Generate hardcoded image path based on room name
+        $row['image_url'] = getHardcodedImagePath($row['room_name']);
         $rooms[] = $row;
     }
 
@@ -163,13 +165,20 @@ function getAllRoomsFromDB($conn) {
 }
 
 function getRoomById($conn, $id) {
-    $sql = "SELECT id, room_name, price, description, IFNULL(image_url, 'img/meetingroom.jpg') as image_url, IFNULL(status, 'available') as status FROM rooms WHERE id = ?";
+    $sql = "SELECT id, room_name, price, description, IFNULL(status, 'available') as status FROM rooms WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    return $result->num_rows > 0 ? $result->fetch_assoc() : null;
+    if ($result->num_rows > 0) {
+        $room = $result->fetch_assoc();
+        // Generate hardcoded image path based on room name
+        $room['image_url'] = getHardcodedImagePath($room['room_name']);
+        return $room;
+    }
+
+    return null;
 }
 
 function createRoomInDB($conn, $room) {
@@ -204,6 +213,45 @@ function hasBookings($conn, $roomId) {
     $result = $stmt->get_result();
 
     return $result->fetch_assoc()['booking_count'] > 0;
+}
+
+// IMAGE MAPPING FUNCTION
+function getHardcodedImagePath($roomName) {
+    // Map room names to their corresponding image files
+    $roomImageMap = [
+        'Meeting Room' => 'assets/img/meetingroom.jpg',
+        'Private Office' => 'assets/img/privateoffice.jpg',
+        'Class Room' => 'assets/img/classroom.jpg',
+        'Coworking Space' => 'assets/img/coworkingspace.jpg',
+        'Event Room' => 'assets/img/eventspace.jpg',
+        'Virtual Office' => 'assets/img/virtualoffice.jpg',
+        // Variations and partial matches
+        'Co-Working Space' => 'assets/img/coworkingspace.jpg',
+        'Event Space' => 'assets/img/eventspace.jpg',
+        // Default fallback for any room names not in the map
+        'default' => 'assets/img/meetingroom.jpg'
+    ];
+
+    // Clean up room name for matching (case insensitive, trim spaces)
+    $cleanRoomName = trim(strtolower($roomName));
+
+    // Create a case-insensitive lookup map
+    $lowerCaseMap = array_change_key_case($roomImageMap, CASE_LOWER);
+
+    // Try to find exact match first
+    if (isset($lowerCaseMap[$cleanRoomName])) {
+        return $lowerCaseMap[$cleanRoomName];
+    }
+
+    // Try partial matching for room names that contain our keywords
+    foreach ($lowerCaseMap as $key => $path) {
+        if ($key !== 'default' && strpos($cleanRoomName, $key) !== false) {
+            return $path;
+        }
+    }
+
+    // Return default image if no match found
+    return $roomImageMap['default'];
 }
 
 // VALIDATION & UTILITIES
