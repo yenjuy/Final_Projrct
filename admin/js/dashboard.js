@@ -35,17 +35,43 @@ class DashboardController {
             });
         });
 
+        // Setup logout
+        const logoutMenu = document.querySelector('.logout-menu');
+        if (logoutMenu) {
+            logoutMenu.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.logout();
+            });
+        }
+
         // Modal setup
         this.setupModal();
     }
 
     setupModal() {
-        const modal = document.getElementById('detailModal');
-        const closeBtn = document.querySelector('.close-modal');
+        // Setup detail modal
+        const detailModal = document.getElementById('detailModal');
+        const detailCloseBtn = detailModal?.querySelector('.close-modal');
 
-        closeBtn.onclick = () => modal.style.display = 'none';
+        if (detailCloseBtn) {
+            detailCloseBtn.onclick = () => detailModal.style.display = 'none';
+        }
+
+        // Setup logout modal
+        const logoutModal = document.getElementById('logoutModal');
+        const logoutCloseBtn = logoutModal?.querySelector('.close-modal');
+
+        if (logoutCloseBtn) {
+            logoutCloseBtn.onclick = () => logoutModal.style.display = 'none';
+        }
+
+        // Global click handler to close modals when clicking outside
         window.onclick = (event) => {
-            if (event.target === modal) modal.style.display = 'none';
+            if (event.target === detailModal) detailModal.style.display = 'none';
+            if (event.target === logoutModal) logoutModal.style.display = 'none';
+            if (event.target === document.getElementById('deleteModal')) {
+                document.getElementById('deleteModal').style.display = 'none';
+            }
         };
     }
 
@@ -108,7 +134,38 @@ class DashboardController {
         }
     }
 
-    
+    // Logout method for DashboardController
+    logout() {
+        this.showLogoutModal();
+    }
+
+    // Show logout confirmation modal
+    showLogoutModal() {
+        const modal = document.getElementById('logoutModal');
+        const modalBody = document.getElementById('logoutModalBody');
+
+        modalBody.innerHTML = `
+            <div class="delete-confirmation">
+                <div class="delete-icon">🚪</div>
+                <div class="delete-title">Konfirmasi Logout</div>
+                <div class="delete-message">
+                    Apakah Anda yakin ingin keluar dari dashboard admin?
+                </div>
+                <div class="delete-actions">
+                    <button class="btn-cancel-delete" onclick="closeLogoutModal()">
+                        Batal
+                    </button>
+                    <button class="btn-confirm-delete" onclick="confirmLogout()">
+                        Ya, Logout
+                    </button>
+                </div>
+            </div>
+        `;
+
+        modal.style.display = 'block';
+    }
+
+
     async loadCustomersData() {
         try {
             // Load customers data from API
@@ -1501,13 +1558,39 @@ class DashboardController {
 
 // Global functions for backward compatibility
 function logout() {
-    adminUtils.logout();
+    if (dashboard) {
+        dashboard.logout();
+    } else {
+        // Fallback to simple logout
+        if (confirm('Apakah Anda yakin ingin logout?')) {
+            if (typeof adminUtils !== 'undefined' && adminUtils.logout) {
+                adminUtils.logout();
+            } else {
+                localStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+    }
 }
 
 function clearSession() {
     localStorage.removeItem('adminSession');
-    alert('Session cleared! Page will reload.');
     location.reload();
+}
+
+// Global logout function
+function logout() {
+    if (dashboard) {
+        dashboard.logout();
+    } else {
+        // Fallback: direct logout without confirm
+        if (typeof adminUtils !== 'undefined' && adminUtils.logout) {
+            adminUtils.logout();
+        } else {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+    }
 }
 
 // Delete modal global functions
@@ -1518,6 +1601,24 @@ function closeDeleteModal() {
 function confirmDelete(type, id) {
     if (dashboard) {
         dashboard.confirmDelete(type, id);
+    }
+}
+
+// Logout modal global functions
+function closeLogoutModal() {
+    document.getElementById('logoutModal').style.display = 'none';
+}
+
+function confirmLogout() {
+    closeLogoutModal();
+
+    // Clear session using adminUtils
+    if (typeof adminUtils !== 'undefined' && adminUtils.logout) {
+        adminUtils.logout();
+    } else {
+        // Fallback: clear localStorage manually
+        localStorage.clear();
+        window.location.href = 'login.html';
     }
 }
 

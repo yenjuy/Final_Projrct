@@ -25,9 +25,9 @@
                 <span>👥</span>
                 <span>Customers</span>
             </li>
-            <li class="menu-item logout-menu">
+            <li class="menu-item logout-menu" onclick="logout()">
                 <span>🚪</span>
-                <span onclick="logout()">Logout</span>
+                <span>Logout</span>
             </li>
         </ul>
     </aside>
@@ -48,6 +48,14 @@
         <div class="modal-content modal-medium">
             <span class="close-modal" onclick="closeDeleteModal()">&times;</span>
             <div id="deleteModalBody"></div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal">
+        <div class="modal-content modal-medium">
+            <span class="close-modal" onclick="closeLogoutModal()">&times;</span>
+            <div id="logoutModalBody"></div>
         </div>
     </div>
 
