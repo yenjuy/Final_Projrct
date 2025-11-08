@@ -2,7 +2,7 @@
 // Authentication API
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Methods: POST, GET, PUT, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 session_start();
@@ -27,6 +27,9 @@ switch ($action) {
         break;
     case 'admin_login':
         handleAdminLogin($conn);
+        break;
+    case 'update_profile':
+        handleUpdateProfile($conn);
         break;
     default:
         sendError('Invalid action', 400);
@@ -83,6 +86,12 @@ function handleRegister($conn) {
         return;
     }
 
+    // Validate password strength
+    if (!validatePasswordStrength($data['password'])) {
+        sendError('Password must be at least 8 characters long and include uppercase, lowercase, and numbers');
+        return;
+    }
+
     $user = [
         'name' => sanitize($conn, $data['name']),
         'email' => $email,
@@ -118,8 +127,7 @@ function handleAdminLogin($conn) {
         return;
     }
 
-    // For demo: plain text comparison (CHANGE to password_verify in production)
-    if ($admin['password'] !== $password) {
+    if (!password_verify($password, $admin['password'])) {
         sendError('Invalid admin credentials', 401);
         return;
     }
@@ -129,7 +137,8 @@ function handleAdminLogin($conn) {
     sendSuccess([
         'admin' => [
             'id' => $admin['id'],
-            'admin_name' => $admin['admin_name']
+            'admin_name' => $admin['admin_name'],
+            'loginTime' => date('Y-m-d H:i:s')
         ]
     ]);
 }
@@ -168,6 +177,77 @@ function createUser($conn, $user) {
     return $stmt->execute() ? $conn->insert_id : false;
 }
 
+// PROFILE UPDATE HANDLER
+function handleUpdateProfile($conn) {
+    // Check if user is logged in
+    if (!isset($_SESSION['user_id'])) {
+        sendError('Authentication required', 401);
+        return;
+    }
+
+    $data = getRequestData();
+
+    // Get current user ID from session
+    $userId = $_SESSION['user_id'];
+
+    // Validate required fields
+    if (!isset($data['name']) || empty(trim($data['name']))) {
+        sendError('Name is required', 400);
+        return;
+    }
+
+    // Sanitize inputs
+    $name = sanitize($conn, $data['name']);
+    $noTelp = isset($data['no_telp']) ? sanitize($conn, $data['no_telp']) : null;
+
+    // Validate password if provided
+    if (isset($data['password']) && !empty($data['password'])) {
+        if (!validatePasswordStrength($data['password'])) {
+            sendError('Password must be at least 8 characters long and include uppercase, lowercase, and numbers');
+            return;
+        }
+        $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
+
+        // Update user profile with password
+        $sql = "UPDATE users SET name = ?, no_telp = ?, password = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssi", $name, $noTelp, $hashedPassword, $userId);
+    } else {
+        // Update user profile without password
+        $sql = "UPDATE users SET name = ?, no_telp = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssi", $name, $noTelp, $userId);
+    }
+
+    if ($stmt->execute()) {
+        // Update session name
+        $_SESSION['user_name'] = $name;
+
+        // Get updated user data
+        $updatedUser = findUserById($conn, $userId);
+
+        sendSuccess([
+            'user' => [
+                'id' => $updatedUser['id'],
+                'name' => $updatedUser['name'],
+                'email' => $updatedUser['email'],
+                'no_telp' => $updatedUser['no_telp']
+            ]
+        ], 'Profile updated successfully');
+    } else {
+        sendError('Failed to update profile', 500);
+    }
+}
+
+function findUserById($conn, $id) {
+    $sql = "SELECT id, name, email, no_telp FROM users WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->num_rows > 0 ? $result->fetch_assoc() : null;
+}
+
 // SESSION MANAGEMENT
 function setUserSession($user) {
     $_SESSION['user_id'] = $user['id'];
@@ -197,6 +277,30 @@ function validateRequired($data, $required) {
 
 function sanitize($conn, $value) {
     return $conn->real_escape_string(trim($value));
+}
+
+function validatePasswordStrength($password) {
+    // Password should be at least 8 characters long
+    if (strlen($password) < 8) {
+        return false;
+    }
+
+    // Should contain at least one uppercase letter
+    if (!preg_match('/[A-Z]/', $password)) {
+        return false;
+    }
+
+    // Should contain at least one lowercase letter
+    if (!preg_match('/[a-z]/', $password)) {
+        return false;
+    }
+
+    // Should contain at least one number
+    if (!preg_match('/\d/', $password)) {
+        return false;
+    }
+
+    return true;
 }
 
 function sendSuccess($data = [], $message = 'Success') {
