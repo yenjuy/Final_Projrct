@@ -151,14 +151,14 @@ function handleUpdateBooking($conn, $id) {
     // Validate user permissions
     $currentUserId = getCurrentUserId();
 
-    // Allow users to cancel their own pending bookings only
+    // Allow users to cancel their own confirmed bookings only
     if ($data['status'] === 'cancelled') {
         if ($booking['user_id'] != $currentUserId) {
             sendError('You can only cancel your own bookings', 403);
             return;
         }
-        if ($booking['status'] !== 'pending') {
-            sendError('You can only cancel pending bookings', 403);
+        if ($booking['status'] !== 'confirmed') {
+            sendError('You can only cancel confirmed bookings', 403);
             return;
         }
     } else {
@@ -369,7 +369,7 @@ function prepareBookingData($conn, $data, $userId) {
         'end_date' => sanitize($conn, $data['end_date']),
         'price' => (int)$data['price'],
         'payment' => sanitize($conn, $data['payment'] ?? 'pending'),
-        'status' => 'pending'
+        'status' => 'confirmed'
     ];
 }
 
