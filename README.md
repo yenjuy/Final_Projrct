@@ -146,13 +146,11 @@ Final_Project/
 - Session-based authentication
 - Prepared statements untuk security
 
-## 🚀 Quick Start untuk Junior Developer
+## 🚀 Quick Start DB
 
 ### 1. Setup Database
-```bash
-# Import database schema
-mysql -u username -p < create_tables.sql
-```
+-Buat DB nya dengan nama `seru_db`
+-Copy Paste isi file `create_tables.sql` (Copas di Mysql lalu Execute)
 
 ### 2. Konfigurasi Koneksi
 - Edit `api/config/Database.php` jika perlu (default: localhost, root, no password)
@@ -176,22 +174,7 @@ mysql -u username -p < create_tables.sql
 - **Booking Status**: `confirmed` vs `cancelled` untuk status transaksi
 - **Payment Methods**: ENUM('cash', 'credit', 'bank', 'ewallet')
 
-### Code Quality:
-- **Modular JS**: Class-based API service
-- **Responsive Design**: Mobile-first CSS dengan Grid & Flexbox
-- **Error Handling**: Comprehensive error messages
-- **Clean Architecture**: MVC-like separation
-
-## 🔧 Areas untuk Improvement
-
-1. **UI/UX**: Modern design framework (Bootstrap, Tailwind)
-2. **Backend**: Framework adoption (Laravel, CodeIgniter)
-3. **Frontend**: React/Vue untuk dynamic content
-4. **Features**: Email notifications, PDF receipts, calendar view
-5. **Testing**: Unit tests, integration tests
-6. **Deployment**: Docker containerization
-
-## 💡 Tips untuk Junior Developer
+## 💡 Tips
 
 ### Kalau mau update features:
 1. **Cek API endpoints** di folder `/api/` dulu
@@ -199,14 +182,4 @@ mysql -u username -p < create_tables.sql
 3. **Follow pattern** yang sudah ada (prepared statements, error handling)
 4. **Test di local** sebelum production
 5. **Backup database** sebelum schema changes
-
-### Debugging Tips:
-- **Check browser console** untuk JavaScript errors
-- **Check Network tab** untuk API responses
-- **Enable PHP errors** dengan `error_reporting(E_ALL)` di development
-- **Use browser DevTools** untuk responsive testing
-
 ---
-
-**Happy Coding! 🚀**
-This project is production-ready and follows modern web development best practices. Perfect starting point for learning full-stack development!
