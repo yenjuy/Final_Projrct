@@ -238,6 +238,34 @@ body {
     background: #5568d3;
 }
 
+/* Button type variations */
+.btn-small.btn-view {
+    background: #4299e1;
+    color: white;
+}
+
+.btn-small.btn-view:hover {
+    background: #3182ce;
+}
+
+.btn-small.btn-edit {
+    background: #48bb78;
+    color: white;
+}
+
+.btn-small.btn-edit:hover {
+    background: #38a169;
+}
+
+.btn-small.btn-delete {
+    background: #f56565;
+    color: white;
+}
+
+.btn-small.btn-delete:hover {
+    background: #e53e3e;
+}
+
 .btn-header {
     padding: 10px 20px;
     background: #667eea;

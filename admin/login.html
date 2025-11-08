@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <title>Admin Login - SERU</title>
+</head>
+<body class="admin-login">
+    <div class="admin-login-container">
+        <div class="admin-logo">
+            <img src="../assets/img/LogoSeru.png" alt="Admin Logo" />
+            <h1>Admin Portal</h1>
+            <p>Sign in to admin dashboard</p>
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;">
+            Invalid admin credentials. Please try again.
+        </div>
+
+        <form id="adminLoginForm">
+            <div class="form-group">
+                <label for="adminName">Admin Name</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user-shield"></i>
+                    <input type="text" id="adminName" name="adminName" placeholder="Enter admin name" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="Enter admin password" required>
+                    <span class="password-toggle" id="passwordToggle">
+                        <i class="fa-solid fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="admin-options">
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+            </div>
+
+            <button type="submit" class="admin-login-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                Sign In to Admin
+            </button>
+        </form>
+
+        <div class="back-to-user">
+            <a href="../pages/Login.html">
+                <i class="fas fa-arrow-left"></i>
+                Back to User Login
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-bg">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
