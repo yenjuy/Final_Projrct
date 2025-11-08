@@ -5,6 +5,31 @@ let currentStep = 1;
 let bookingData = {};
 let myBookings = [];
 
+// Hardcoded image mapping function using room ID
+function getHardcodedImagePath(roomId) {
+    // Map room IDs to their corresponding image files
+    const roomImageMap = {
+        1: 'assets/img/meetingroom.jpg',
+        2: 'assets/img/privateoffice.jpg',
+        3: 'assets/img/classroom.jpg',
+        4: 'assets/img/coworkingspace.jpg',
+        5: 'assets/img/eventspace.jpg',
+        6: 'assets/img/virtualoffice.jpg',
+        // Add new rooms here - easy to add new entries
+        // 7: 'assets/img/newroom.jpg',
+        // 8: 'assets/img/anotherroom.jpg',
+
+        // Default fallback for any room IDs not in the map
+        'default': 'assets/img/meetingroom.jpg'
+    };
+
+    // Get image path by room ID
+    const imagePath = roomImageMap[roomId] || roomImageMap['default'];
+
+    // Add '../' prefix for relative path from pages/
+    return '../' + imagePath;
+}
+
 function getImagePath(imageUrl) {
     // Handle the new hardcoded paths from API (format: assets/img/imagename.jpg)
     if (!imageUrl) {
@@ -77,23 +102,21 @@ function getBarcodeHTML(bookingId, options = {}) {
 async function loadRooms() {
     try {
         const response = await api.getAllRooms();
+
         // Handle new API response format with success wrapper
         const roomsData = response.success ? response : response;
         const roomsArray = Array.isArray(roomsData) ? roomsData : (roomsData.data || []);
+
         rooms = roomsArray.map(room => {
-            const processedImage = getImagePath(room.image_url);
-            console.log('Processing room:', {
-                name: room.room_name,
-                status: room.status,
-                processed: processedImage
-            });
+            // Use local hardcoded image mapping function with room ID
+            const imagePath = getHardcodedImagePath(room.id);
 
             return {
                 id: room.id,
                 name: room.room_name,
                 description: room.description || `${room.room_name} - A professional space for your business needs.`,
                 price: room.price,
-                image: processedImage, // Process image_url from database
+                image: imagePath, // Use hardcoded image path by ID
                 status: room.status || 'available' // Add status from API
             };
         });
@@ -506,9 +529,12 @@ function renderRooms() {
         const buttonText = isUnavailable ? 'Not Available' : 'Book Now';
         const buttonDisabled = isUnavailable ? 'disabled' : '';
 
+        // Use the image path that was already processed from API
+        const roomImagePath = room.image;
+
         return `
             <div class="${cardClass}" ${clickHandler}>
-                <div class="room-image" style="background-image: url('${room.image}')">
+                <div class="room-image" style="background-image: url('${roomImagePath}')">
                     ${getStatusBadge(room.status)}
                     ${isUnavailable ? '<div class="unavailable-overlay"></div>' : ''}
                 </div>

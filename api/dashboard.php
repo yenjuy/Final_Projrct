@@ -215,8 +215,8 @@ function getRoomsData($conn) {
         }
 
         while ($room = $result->fetch_assoc()) {
-            // Generate hardcoded image path based on room name
-            $imageUrl = getHardcodedImagePath($room['room_name']);
+            // Generate hardcoded image path based on room ID
+            $imageUrl = getHardcodedImagePath($room['id']);
 
             $rooms[] = [
                 'id' => (int)$room['id'],
@@ -345,43 +345,26 @@ function deleteCustomer($conn, $userId) {
     }
 }
 
-// IMAGE MAPPING FUNCTION
-function getHardcodedImagePath($roomName) {
-    // Map room names to their corresponding image files
+// IMAGE MAPPING FUNCTION - Using Room ID
+function getHardcodedImagePath($roomId) {
+    // Map room IDs to their corresponding image files
     $roomImageMap = [
-        'Meeting Room' => 'assets/img/meetingroom.jpg',
-        'Private Office' => 'assets/img/privateoffice.jpg',
-        'Class Room' => 'assets/img/classroom.jpg',
-        'Coworking Space' => 'assets/img/coworkingspace.jpg',
-        'Event Room' => 'assets/img/eventspace.jpg',
-        'Virtual Office' => 'assets/img/virtualoffice.jpg',
-        // Variations and partial matches
-        'Co-Working Space' => 'assets/img/coworkingspace.jpg',
-        'Event Space' => 'assets/img/eventspace.jpg',
-        // Default fallback for any room names not in the map
+        1 => 'assets/img/meetingroom.jpg',
+        2 => 'assets/img/privateoffice.jpg',
+        3 => 'assets/img/classroom.jpg',
+        4 => 'assets/img/coworkingspace.jpg',
+        5 => 'assets/img/eventspace.jpg',
+        6 => 'assets/img/virtualoffice.jpg',
+        // Add new rooms here - easy to add new entries
+        // 7 => 'assets/img/newroom.jpg',
+        // 8 => 'assets/img/anotherroom.jpg',
+
+        // Default fallback for any room IDs not in the map
         'default' => 'assets/img/meetingroom.jpg'
     ];
 
-    // Clean up room name for matching (case insensitive, trim spaces)
-    $cleanRoomName = trim(strtolower($roomName));
-
-    // Create a case-insensitive lookup map
-    $lowerCaseMap = array_change_key_case($roomImageMap, CASE_LOWER);
-
-    // Try to find exact match first
-    if (isset($lowerCaseMap[$cleanRoomName])) {
-        return $lowerCaseMap[$cleanRoomName];
-    }
-
-    // Try partial matching for room names that contain our keywords
-    foreach ($lowerCaseMap as $key => $path) {
-        if ($key !== 'default' && strpos($cleanRoomName, $key) !== false) {
-            return $path;
-        }
-    }
-
-    // Return default image if no match found
-    return $roomImageMap['default'];
+    // Get image path by room ID
+    return $roomImageMap[$roomId] ?? $roomImageMap['default'];
 }
 
 // Helper functions

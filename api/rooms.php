@@ -5,6 +5,11 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display errors, but log them
+ini_set('log_errors', 1);
+
 require_once 'config/Database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -62,7 +67,11 @@ function handleGetAllRooms($conn) {
         checkRoomsTable($conn);
 
         $rooms = getAllRoomsFromDB($conn);
-        $formattedRooms = array_map('formatRoomData', $rooms);
+
+        $formattedRooms = [];
+        foreach ($rooms as $room) {
+            $formattedRooms[] = formatRoomData($room);
+        }
 
         sendSuccess($formattedRooms);
     } catch (Exception $e) {
@@ -151,8 +160,6 @@ function getAllRoomsFromDB($conn) {
 
     $rooms = [];
     while ($row = $result->fetch_assoc()) {
-        // Generate hardcoded image path based on room name
-        $row['image_url'] = getHardcodedImagePath($row['room_name']);
         $rooms[] = $row;
     }
 
@@ -168,8 +175,6 @@ function getRoomById($conn, $id) {
 
     if ($result->num_rows > 0) {
         $room = $result->fetch_assoc();
-        // Generate hardcoded image path based on room name
-        $room['image_url'] = getHardcodedImagePath($room['room_name']);
         return $room;
     }
 
@@ -227,43 +232,26 @@ function hasBookings($conn, $roomId) {
     return $result->fetch_assoc()['booking_count'] > 0;
 }
 
-// IMAGE MAPPING FUNCTION
-function getHardcodedImagePath($roomName) {
-    // Map room names to their corresponding image files
+// IMAGE MAPPING FUNCTION - Using Room ID
+function getHardcodedImagePath($roomId) {
+    // Map room IDs to their corresponding image files
     $roomImageMap = [
-        'Meeting Room' => 'assets/img/meetingroom.jpg',
-        'Private Office' => 'assets/img/privateoffice.jpg',
-        'Class Room' => 'assets/img/classroom.jpg',
-        'Coworking Space' => 'assets/img/coworkingspace.jpg',
-        'Event Room' => 'assets/img/eventspace.jpg',
-        'Virtual Office' => 'assets/img/virtualoffice.jpg',
-        // Variations and partial matches
-        'Co-Working Space' => 'assets/img/coworkingspace.jpg',
-        'Event Space' => 'assets/img/eventspace.jpg',
-        // Default fallback for any room names not in the map
+        1 => 'assets/img/meetingroom.jpg',
+        2 => 'assets/img/privateoffice.jpg',
+        3 => 'assets/img/classroom.jpg',
+        4 => 'assets/img/coworkingspace.jpg',
+        5 => 'assets/img/eventspace.jpg',
+        6 => 'assets/img/virtualoffice.jpg',
+        // Add new rooms here - easy to add new entries
+        // 7 => 'assets/img/newroom.jpg',
+        // 8 => 'assets/img/anotherroom.jpg',
+
+        // Default fallback for any room IDs not in the map
         'default' => 'assets/img/meetingroom.jpg'
     ];
 
-    // Clean up room name for matching (case insensitive, trim spaces)
-    $cleanRoomName = trim(strtolower($roomName));
-
-    // Create a case-insensitive lookup map
-    $lowerCaseMap = array_change_key_case($roomImageMap, CASE_LOWER);
-
-    // Try to find exact match first
-    if (isset($lowerCaseMap[$cleanRoomName])) {
-        return $lowerCaseMap[$cleanRoomName];
-    }
-
-    // Try partial matching for room names that contain our keywords
-    foreach ($lowerCaseMap as $key => $path) {
-        if ($key !== 'default' && strpos($cleanRoomName, $key) !== false) {
-            return $path;
-        }
-    }
-
-    // Return default image if no match found
-    return $roomImageMap['default'];
+    // Get image path by room ID
+    return $roomImageMap[$roomId] ?? $roomImageMap['default'];
 }
 
 // VALIDATION & UTILITIES
@@ -299,7 +287,7 @@ function formatRoomData($room) {
         'room_name' => $room['room_name'],
         'price' => (int)$room['price'],
         'description' => $room['description'],
-        'image_url' => $room['image_url'],
+        'image_url' => getHardcodedImagePath($room['id']), // Use room ID for hardcoded mapping
         'status' => $status
     ];
 }
