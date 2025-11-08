@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/booking.css">
+    <title>Seru Booking</title>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="../assets/img/LogoSeru.png" alt="Logo Seru">
+        </div>
+        <nav>
+            <a id="profileBtn" class="profile-nav">
+                <div class="login-avatar">
+                    <span>👤</span>
+                </div>
+                <div class="user-info-nav">
+                    <span class="login-text">Login</span>
+                    <span class="login-subtitle">Access Account</span>
+                </div>
+            </a>
+            <ul class="profile-menu" id="profileMenu">
+                <li id="profileUserBtn">👤 Profile Users</li>
+                <li id="myBookingsBtn">📋 My Bookings</li>
+                <li id="logoutBtn" style="display: none;">🚪 Logout</li>
+                <li id="loginBtn">🔐 Login</li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Book Your Meeting Room</h1>
+        <p>Professional spaces for your business needs</p>
+    </section>
+
+    <div class="container">
+        <h2>Available Meeting Rooms</h2>
+        <p>Choose from our selection of professional meeting spaces</p>
+
+        <div class="rooms-grid" id="roomsGrid">
+        </div>
+    </div>
+
+    <!-- Modal Booking -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            
+            <div class="step-indicator">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Details</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Payment</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Confirm</div>
+                </div>
+            </div>
+
+            <div id="modalBody">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Profile Users -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content modal-profile">
+            <span class="close-btn" id="closeProfileModal">&times;</span>
+            <h2>👤 Profile Users</h2>
+            <div class="profile-container">
+                <div class="profile-info">
+                    <div class="profile-info-row">
+                        <div class="profile-label">👤 Full Name</div>
+                        <div class="profile-value">John Doe</div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-label">🏢 Company/Organization</div>
+                        <div class="profile-value">PT Seru Indonesia</div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-label">📧 Email</div>
+                        <div class="profile-value">john@example.com</div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-label">📱 Phone Number</div>
+                        <div class="profile-value">+62 812 3456 7890</div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-label">📅 Member Since</div>
+                        <div class="profile-value">January 2024</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal My Bookings -->
+    <div class="modal" id="bookingsModal">
+        <div class="modal-content modal-large">
+            <span class="close-btn" id="closeBookingsModal">&times;</span>
+            <h2>📋 My Bookings</h2>
+            <div class="bookings-container">
+                <div class="bookings-tabs">
+                    <button class="tab-btn active" onclick="filterBookings('all', this)">All</button>
+                    <button class="tab-btn" onclick="filterBookings('pending', this)">Pending</button>
+                    <button class="tab-btn" onclick="filterBookings('confirmed', this)">Confirmed</button>
+                    <button class="tab-btn" onclick="filterBookings('cancelled', this)">Cancelled</button>
+                </div>
+                
+                <div id="bookingsList" class="bookings-list">
+                    <!-- Bookings will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/booking.js"></script>
+</body>
+</html>

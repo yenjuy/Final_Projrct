@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="Dashboard.css">
+    <link rel="stylesheet" href="../css/Dashboard.css">
     <title>Dashboard</title>
 </head>
 <body>
@@ -28,6 +28,10 @@
                 <span>👥</span>
                 <span>Customers</span>
             </li>
+            <li class="menu-item logout-menu">
+                <span>🚪</span>
+                <span onclick="logout()">Logout</span>
+            </li>
         </ul>
     </aside>
 
@@ -42,7 +46,53 @@
         </div>
     </div>
 
+    <script src="../js/api.js"></script>
     <script>
+        // Check admin session on page load
+        window.addEventListener('load', function() {
+            const adminSession = localStorage.getItem('admin_session');
+            if (!adminSession) {
+                utils.showNotification('Please login as admin to access dashboard', 'error');
+                setTimeout(() => {
+                    window.location.href = 'Login.html';
+                }, 2000);
+                return;
+            }
+
+            // Set user info in header
+            const admin = JSON.parse(adminSession);
+            const userNameElement = document.querySelector('.user-name');
+            const userEmailElement = document.querySelector('.user-email');
+
+            if (userNameElement) userNameElement.textContent = admin.admin_name;
+            if (userEmailElement) userEmailElement.textContent = admin.admin_name + '@meetingspace.com';
+
+            // Load dashboard data
+            loadDashboardData();
+        });
+
+        // Load real dashboard data
+        async function loadDashboardData() {
+            try {
+                const response = await api.getDashboardStats();
+                if (response.success) {
+                    updateDashboardWithRealData(response.stats);
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                utils.showNotification('Failed to load dashboard data', 'error');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('admin_session');
+            utils.showNotification('Logged out successfully', 'success');
+            setTimeout(() => {
+                window.location.href = 'Login.html';
+            }, 1000);
+        }
+
         const pages = {
             dashboard: `
                 <div class="header">
@@ -56,6 +106,9 @@
                             <div class="user-email">admin@meetingspace.com</div>
                         </div>
                         <div class="avatar">AU</div>
+                        <button class="logout-btn" onclick="logout()" title="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
                     </div>
                 </div>
 

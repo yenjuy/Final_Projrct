@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/Register.css">
+    <title>Register</title>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-header">
+            <img src="../assets/img/LogoSeru.png" alt="Logo" />
+            <p>Register now to be able to book a room</p>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            Account created successfully!
+        </div>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="fullName">Full name</label>
+                <input type="text" id="fullName" name="fullName" placeholder="Enter your full name">
+                <div class="error-message">Full name is required</div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" placeholder="example@email.com">
+                <div class="error-message">Invalid email</div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone number</label>
+                <input type="tel" id="phone" name="phone" placeholder="+62xxxxxxxxxx">
+                <div class="error-message">Invalid phone number</div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Minimum 8 characters">
+                <div class="error-message">Password Minimum 8 characters</div>
+                <div class="password-strength">
+                    <div class="strength-bar">
+                        <div class="strength-fill" id="strengthFill"></div>
+                    </div>
+                    <div class="strength-text" id="strengthText">Enter password</div>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Retype password">
+                <div class="error-message">Passwords do not match</div>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="terms" name="terms">
+                <label for="terms">
+                    I agree with <a href="#" style="color: #667eea;">Terms and Conditions</a> 
+                    As well as <a href="#" style="color: #667eea;">Privacy Policy</a>
+                </label>
+            </div>
+
+            <button type="submit" class="register-btn">Register</button>
+
+            <div class="login-link">
+                Already have an account? <a href="Login.html">Login</a>
+            </div>
+        </form>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/register.js"></script>
+</body>
+</html>

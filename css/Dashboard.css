@@ -54,6 +54,33 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
+.menu-item.logout-menu {
+    margin-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 20px;
+}
+
+.menu-item.logout-menu:hover {
+    background: rgba(220, 53, 69, 0.3);
+}
+
+.logout-btn {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    color: #dc3545;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.logout-btn:hover {
+    background: rgba(220, 53, 69, 0.3);
+    transform: scale(1.05);
+}
+
 .main-content {
     margin-left: 260px;
     flex: 1;

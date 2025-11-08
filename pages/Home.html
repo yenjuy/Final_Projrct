@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="../css/home.css">
     <title>Seru- Sewa Ruangan</title>
 </head>
 <body>
     <header>
         <nav>
             <div class="logo"> 
-                <img src="img/LogoSeru.png" alt="">
+                <img src="../assets/img/LogoSeru.png" alt="">
             </div>
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
@@ -39,7 +39,7 @@
                 <h1>Premium Space for Every Need</h1>
                 <p>Find the best rooms with complete facilities and strategic locations. Easy booking and affordable prices for all your business and personal events!</p>
                 <div class="cta-buttons">
-                    <a href="Login.html" class="btn btn-primary">Booking Now</a>
+                    <a href="Booking.html" class="btn btn-primary">Booking Now</a>
                 </div>
             </div>
             <div class="hero-image">
@@ -125,7 +125,7 @@
             <div class="rooms-grid">
                 <div class="room-card fade-in">
                     <div class="room-image">
-                        <img src="img/meetingroom.jpg" alt="">
+                        <img src="../assets/img/meetingroom.jpg" alt="">
                     </div>
                     <div class="room-content">
                         <h3>Meeting Room</h3>
@@ -134,7 +134,7 @@
                 </div>
                 <div class="room-card fade-in">
                     <div class="room-image">
-                        <img src="img/privateoffice.jpg" alt="">
+                        <img src="../assets/img/privateoffice.jpg" alt="">
                     </div>
                     <div class="room-content">
                         <h3>Private Office</h3>
@@ -143,7 +143,7 @@
                 </div>
                 <div class="room-card fade-in">
                     <div class="room-image">
-                        <img src="img/coworkingspace.jpg" alt="">
+                        <img src="../assets/img/coworkingspace.jpg" alt="">
                     </div>
                     <div class="room-content">
                         <h3>Coworking Space</h3>
@@ -152,7 +152,7 @@
                 </div>
                 <div class="room-card fade-in">
                     <div class="room-image">
-                        <img src="img/eventspace.jpg" alt="">
+                        <img src="../assets/img/eventspace.jpg" alt="">
                     </div>
                     <div class="room-content">
                         <h3>Event Space</h3>
@@ -161,7 +161,7 @@
                 </div>
                 <div class="room-card fade-in">
                     <div class="room-image">
-                        <img src="img/virtualoffice.jpg" alt="">
+                        <img src="../assets/img/virtualoffice.jpg" alt="">
                     </div>
                     <div class="room-content">
                         <h3>Virtual Office</h3>
@@ -170,7 +170,7 @@
                 </div>
                 <div class="room-card fade-in">
                     <div class="room-image">
-                        <img src="img/classroom.jpg" alt="">
+                        <img src="../assets/img/classroom.jpg" alt="">
                     </div>
                     <div class="room-content">
                         <h3>Classroom</h3>
@@ -250,143 +250,6 @@
         </div>
     </footer>
 
-    <script>
-        // Mobile menu toggle Beranda
-        const mobileMenu = document.querySelector('.mobile-menu');
-        const navLinks = document.querySelector('.nav-links');
-
-        mobileMenu.addEventListener('click', () => {
-            mobileMenu.classList.toggle('active');
-            navLinks.classList.toggle('active');
-        });
-
-        // Close mobile menu when clicking on a link
-        navLinks.addEventListener('click', (e) => {
-            if (e.target.tagName === 'A') {
-                mobileMenu.classList.remove('active');
-                navLinks.classList.remove('active');
-            }
-        });
-
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-            });
-        });
-
-// Scroll animations
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-        }
-    });
-}, observerOptions);
-
-// Observe all fade-in elements
-document.querySelectorAll('.fade-in').forEach(el => {
-    observer.observe(el);
-});
-
-// Header background change on scroll
-window.addEventListener('scroll', () => {
-    const header = document.querySelector('header');
-    if (window.scrollY > 100) {
-        header.style.background = 'rgba(255, 255, 255, 0.98)';
-        header.style.boxShadow = '0 2px 20px rgba(0,0,0,0.15)';
-    } else {
-        header.style.background = 'rgba(255, 255, 255, 0.95)';
-        header.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
-    }
-});
-
-// Form submission
-//document.querySelector('.contact-form').addEventListener('submit', function(e) {
-   // e.preventDefault();
-            
-    // Simple form validation
-    //const formData = new FormData(this);
-    //const data = Object.fromEntries(formData);
-            
-    // Show success message (in real app, this would send to server)
-    //alert('Terima kasih! Pesan Anda telah terkirim. Tim kami akan segera menghubungi Anda.');
-   // this.reset();
-//});
-
-// Add floating animation to hero shapes
-document.querySelectorAll('.shape').forEach((shape, index) => {
-    setInterval(() => {
-        const randomX = Math.random() * 20 - 10;
-        const randomY = Math.random() * 20 - 10;
-        shape.style.transform = `translate(${randomX}px, ${randomY}px)`;
-    }, 2000 + index * 500);
-});
-
-// Parallax effect for hero section only
-window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector('.hero');
-            
-    // Only apply parallax to hero section and limit the effect
-    if (hero && scrolled < window.innerHeight) {
-        hero.style.transform = `translateY(${scrolled * 0.3}px)`;
-    }
-});
-
-// Add ripple effect to buttons
-document.querySelectorAll('.btn').forEach(button => {
-    button.addEventListener('click', function(e) {
-        const ripple = document.createElement('span');
-        const rect = this.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height);
-        const x = e.clientX - rect.left - size / 2;
-        const y = e.clientY - rect.top - size / 2;
-                
-        ripple.style.cssText = `
-            position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            left: ${x}px;
-            top: ${y}px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 50%;
-            transform: scale(0);
-            animation: ripple 0.6s ease-out;
-            pointer-events: none;
-        `;
-                
-        this.appendChild(ripple);
-                
-        setTimeout(() => {
-            ripple.remove();
-        }, 600);
-    });
-});
-
-// Add CSS for ripple animation
-const style = document.createElement('style');
-    style.textContent = `
-        @keyframes ripple {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
-        }
-    `;
-document.head.appendChild(style);
-    </script>
+    <script src="../js/home.js"></script>
     </body>
 </html>
