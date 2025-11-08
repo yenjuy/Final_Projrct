@@ -6,24 +6,73 @@ let bookingData = {};
 let myBookings = [];
 
 function getImagePath(imageUrl) {
+    // Handle the new hardcoded paths from API (format: assets/img/imagename.jpg)
     if (!imageUrl) {
         return "../assets/img/meetingroom.jpg";
     }
 
+    // If it starts with 'assets/img/', add '../' prefix for relative path from pages/
+    if (imageUrl.startsWith('assets/img/')) {
+        return '../' + imageUrl;
+    }
+
+    // If it already starts with '../assets/img/', return as-is
+    if (imageUrl.startsWith('../assets/img/')) {
+        return imageUrl;
+    }
+
+    // Legacy fallback for old formats
     if (imageUrl.startsWith('../')) {
         return imageUrl;
     }
 
-    if (imageUrl.startsWith('assets/')) {
-        return '../' + imageUrl;
-    }
-
+    // If it's just a filename without path, assume it's in assets/img/
     if (!imageUrl.includes('/')) {
         return '../assets/img/' + imageUrl;
     }
 
+    // Default fallback
     return '../' + imageUrl;
 }
+
+// Barcode generation functions
+function generateBookingId(bookingId) {
+    return 'BK' + String(bookingId).padStart(3, '0');
+}
+
+function generateBarcode(bookingId) {
+    const code = generateBookingId(bookingId);
+
+    // Simple barcode pattern using CSS
+    const barcodePattern = code.split('').map(char => {
+        const binary = char.charCodeAt(0).toString(2).padStart(8, '0');
+        return binary.split('').map(bit => bit === '1' ? '█' : ' ').join('');
+    }).join(' ');
+
+    return {
+        code: code,
+        pattern: barcodePattern
+    };
+}
+
+function getBarcodeHTML(bookingId, options = {}) {
+    const { showText = true, size = 'medium' } = options;
+    const { code, pattern } = generateBarcode(bookingId);
+
+    const sizeClasses = {
+        small: 'barcode-small',
+        medium: 'barcode-medium',
+        large: 'barcode-large'
+    };
+
+    return `
+        <div class="barcode-container ${sizeClasses[size] || sizeClasses.medium}">
+            <div class="barcode-pattern">${pattern}</div>
+            ${showText ? `<div class="barcode-text">${code}</div>` : ''}
+        </div>
+    `;
+}
+
 
 async function loadRooms() {
     try {
@@ -138,23 +187,259 @@ function updateProfileModal() {
 
     const profileInfo = document.querySelector('.profile-info');
     profileInfo.innerHTML = `
-        <div class="profile-info-row">
-            <div class="profile-label">👤 Full Name</div>
-            <div class="profile-value">${currentUser.name}</div>
-        </div>
-        <div class="profile-info-row">
-            <div class="profile-label">📧 Email</div>
-            <div class="profile-value">${currentUser.email}</div>
-        </div>
-        <div class="profile-info-row">
-            <div class="profile-label">📱 Phone Number</div>
-            <div class="profile-value">${currentUser.no_telp || 'Not provided'}</div>
-        </div>
-        <div class="profile-info-row">
-            <div class="profile-label">📅 Member Since</div>
-            <div class="profile-value">${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</div>
-        </div>
+        <form id="editProfileForm" class="profile-form">
+            <div class="profile-form-grid">
+                <div class="profile-form-column">
+                    <div class="profile-info-row">
+                        <div class="profile-label">👤 Full Name</div>
+                        <div class="profile-value">
+                            <input type="text" id="editName" name="name" value="${currentUser.name}" class="profile-input" required>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-label">📧 Email</div>
+                        <div class="profile-value">
+                            <input type="email" id="editEmail" name="email" value="${currentUser.email}" class="profile-input readonly" readonly disabled>
+                            <small class="input-note">Email cannot be changed</small>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-label">📱 Phone Number</div>
+                        <div class="profile-value">
+                            <input type="tel" id="editPhone" name="no_telp" value="${currentUser.no_telp || ''}" class="profile-input" placeholder="Enter phone number">
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-form-column">
+                    <div class="profile-info-row">
+                        <div class="profile-label">🔒 New Password</div>
+                        <div class="profile-value">
+                            <input type="password" id="editPassword" name="password" class="profile-input" placeholder="Leave blank to keep current password">
+                            <small class="input-note">Min 8 chars, include uppercase, lowercase & number</small>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-label">🔒 Confirm Password</div>
+                        <div class="profile-value">
+                            <input type="password" id="editConfirmPassword" name="confirmPassword" class="profile-input" placeholder="Confirm new password">
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-label">📅 Member Since</div>
+                        <div class="profile-value readonly-value">
+                            ${new Date(currentUser.created_at || Date.now()).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeProfileModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+            </div>
+        </form>
     `;
+
+    // Add form submit handler
+    const form = document.getElementById('editProfileForm');
+    if (form) {
+        form.addEventListener('submit', handleProfileUpdate);
+    }
+
+    // Update form values with current user data
+    setTimeout(() => {
+        refreshProfileForm();
+    }, 100);
+}
+
+// Update form values with current data after API call
+function refreshProfileForm() {
+    if (!currentUser) return;
+
+    const nameInput = document.getElementById('editName');
+    const phoneInput = document.getElementById('editPhone');
+
+    if (nameInput) nameInput.value = currentUser.name;
+    if (phoneInput) phoneInput.value = currentUser.no_telp || '';
+}
+
+// Validate password strength
+function validatePassword(password) {
+    // Password should be at least 8 characters long
+    if (password.length < 8) {
+        return false;
+    }
+
+    // Should contain at least one uppercase letter
+    if (!/[A-Z]/.test(password)) {
+        return false;
+    }
+
+    // Should contain at least one lowercase letter
+    if (!/[a-z]/.test(password)) {
+        return false;
+    }
+
+    // Should contain at least one number
+    if (!/\d/.test(password)) {
+        return false;
+    }
+
+    return true;
+}
+
+// Update profile display elements throughout the UI
+function updateProfileDisplay() {
+    if (!currentUser) return;
+
+    // Update profile menu/username in navigation
+    const profileNameElements = document.querySelectorAll('.profile-name, .user-name, #profileMenu .user-info span');
+    profileNameElements.forEach(element => {
+        if (element) {
+            element.textContent = currentUser.name;
+        }
+    });
+
+    // Update profile button text if it exists
+    const profileButton = document.querySelector('.profile-btn');
+    if (profileButton) {
+        profileButton.textContent = currentUser.name;
+    }
+
+    // Update any welcome messages
+    const welcomeElements = document.querySelectorAll('.welcome-message, .user-welcome');
+    welcomeElements.forEach(element => {
+        if (element) {
+            element.textContent = `Welcome, ${currentUser.name}!`;
+        }
+    });
+
+    // Update header user info if exists
+    const headerUserInfo = document.querySelector('.header-user-info');
+    if (headerUserInfo) {
+        headerUserInfo.textContent = currentUser.name;
+    }
+
+    // Update avatar initials if they exist
+    const avatarElements = document.querySelectorAll('.avatar, .user-avatar');
+    avatarElements.forEach(element => {
+        if (element && element.textContent) {
+            const initials = currentUser.name.split(' ')
+                .map(n => n[0])
+                .join('')
+                .toUpperCase()
+                .slice(0, 2);
+            element.textContent = initials;
+        }
+    });
+
+    console.log('Profile display updated with new name:', currentUser.name);
+}
+
+// Handle profile update form submission
+async function handleProfileUpdate(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+
+    const password = formData.get('password');
+    const confirmPassword = formData.get('confirmPassword');
+
+    // Validate password if provided
+    if (password || confirmPassword) {
+        if (!validatePassword(password)) {
+            showNotification('Password must be at least 8 characters long and include uppercase, lowercase, and numbers', 'error');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showNotification('Passwords do not match', 'error');
+            return;
+        }
+    }
+
+    const updateData = {
+        name: formData.get('name'),
+        no_telp: formData.get('no_telp') || ''
+    };
+
+    // Only include password if it's provided
+    if (password) {
+        updateData.password = password;
+    }
+
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Updating...';
+    submitBtn.disabled = true;
+
+    try {
+
+        // Call the update profile API
+        const response = await fetch('../api/auth.php?action=update_profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updateData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Update current user data
+            currentUser = result.data.user;
+
+            // Update session storage if it exists
+            const userSession = localStorage.getItem('user_session');
+            if (userSession) {
+                const session = JSON.parse(userSession);
+                session.name = currentUser.name;
+                session.no_telp = currentUser.no_telp;
+                localStorage.setItem('user_session', JSON.stringify(session));
+            }
+
+            // Also update sessionStorage if it exists
+            const tempSession = sessionStorage.getItem('user_session_temp');
+            if (tempSession) {
+                const session = JSON.parse(tempSession);
+                session.name = currentUser.name;
+                session.no_telp = currentUser.no_telp;
+                sessionStorage.setItem('user_session_temp', JSON.stringify(session));
+            }
+
+            // Show success message
+            showNotification('Profile updated successfully!', 'success');
+
+            // Update UI elements with new user data
+            updateProfileDisplay();
+
+            // Close modal and reset form
+            closeProfileModal();
+
+        } else {
+            showNotification(result.error || 'Failed to update profile', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showNotification('Error updating profile. Please try again.', 'error');
+    } finally {
+        // Restore button state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+    }
+}
+
+// Close profile modal
+function closeProfileModal() {
+    const modal = document.getElementById('profileModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
 }
 
 // Load user bookings
@@ -479,7 +764,8 @@ async function renderStep3() {
                     <div class="success-icon">✅</div>
                     <h2>Booking Confirmed!</h2>
                     <p>Your meeting room booking has been successfully confirmed.</p>
-                    <p><strong>Booking ID: #${String(bookingId).padStart(3, '0')}</strong></p>
+                    <p><strong>Booking ID: ${generateBookingId(bookingId)}</strong></p>
+                    <p class="barcode-instructions">Show this barcode when you arrive at the venue</p>
 
                     <div class="booking-summary">
                         <div class="summary-row">
@@ -506,6 +792,11 @@ async function renderStep3() {
                             <strong>Total:</strong>
                             <span>${utils.formatRupiah(total)}</span>
                         </div>
+                    </div>
+
+                    <div class="barcode-section">
+                        <h3>Your Booking Barcode</h3>
+                        ${getBarcodeHTML(bookingId, { size: 'large' })}
                     </div>
 
                     <button class="btn" onclick="closeAndReset()">Done</button>
@@ -659,7 +950,7 @@ function renderBookings(filter) {
 
         const statusLineClass = getStatusLineClass(booking.status);
 
-        const cancelButton = booking.status === 'pending' ?
+        const cancelButton = (booking.status === 'confirmed' || booking.status === 'pending') ?
             `<button class="btn btn-cancel" onclick="cancelBooking('${booking.id.substring(2)}', '${booking.roomName}')">Cancel</button>` : '';
 
         return `
@@ -673,6 +964,7 @@ function renderBookings(filter) {
                 <div class="booking-right">
                     <div class="booking-actions">
                         <div class="booking-price">Rp ${booking.total.toLocaleString('id-ID')}</div>
+                        <button class="btn btn-small" onclick="showBookingDetail('${booking.id}', '${booking.roomName}')">View</button>
                         ${statusBadge}
                         ${cancelButton}
                     </div>
@@ -681,6 +973,75 @@ function renderBookings(filter) {
         </div>
         `;
     }).join('');
+}
+
+// Show booking detail with barcode
+function showBookingDetail(bookingId, roomName) {
+    // Find booking data
+    const booking = myBookings.find(b => b.id === bookingId);
+    if (!booking) return;
+
+    const bookingCode = generateBookingId(bookingId.substring(2)); // Remove 'BK' prefix if exists
+
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.id = 'bookingDetailModal';
+    modal.innerHTML = `
+        <div class="modal-content modal-large">
+            <span class="close-btn" onclick="closeBookingDetailModal()">&times;</span>
+            <h2>📋 Booking Details</h2>
+
+            <div class="booking-detail-grid">
+                <div class="detail-section">
+                    <h3>Booking Information</h3>
+                    <div class="detail-row">
+                        <label>Booking ID:</label>
+                        <span class="booking-id">${bookingCode}</span>
+                    </div>
+                    <div class="detail-row">
+                        <label>Room:</label>
+                        <span>${roomName}</span>
+                    </div>
+                    <div class="detail-row">
+                        <label>Check-in:</label>
+                        <span>${booking.startDate}</span>
+                    </div>
+                    <div class="detail-row">
+                        <label>Check-out:</label>
+                        <span>${booking.endDate}</span>
+                    </div>
+                    <div class="detail-row">
+                        <label>Total Price:</label>
+                        <span class="price">Rp ${booking.total.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <label>Status:</label>
+                        <span class="status-badge ${booking.status}">${booking.status}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section barcode-section">
+                    <h3>Booking Barcode</h3>
+                    <p class="barcode-note">Show this barcode when you arrive at the venue</p>
+                    ${booking.status !== 'cancelled' ? getBarcodeHTML(bookingId.substring(2), { size: 'medium' }) : '<p style="color: #999; font-style: italic;">Barcode not available for cancelled bookings</p>'}
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeBookingDetailModal()">Close</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+// Close booking detail modal
+function closeBookingDetailModal() {
+    const modal = document.getElementById('bookingDetailModal');
+    if (modal) {
+        modal.remove();
+    }
 }
 
 // Filter Bookings
@@ -775,6 +1136,25 @@ function initializeEventListeners() {
     document.addEventListener('click', function() {
         document.getElementById('profileMenu').classList.remove('active');
     });
+}
+
+// Show notification function
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+
+    document.body.appendChild(notification);
+
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
 }
 
 // Initialize on page load
