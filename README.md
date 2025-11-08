@@ -169,7 +169,6 @@ Final_Project/
 - ✅ **Input Validation**: Client & server-side validation
 
 ### Business Logic:
-- **Guest Booking**: Support booking tanpa user account (user_id = NULL)
 - **Room Status**: `available` vs `unavailable` affects booking availability
 - **Booking Status**: `confirmed` vs `cancelled` untuk status transaksi
 - **Payment Methods**: ENUM('cash', 'credit', 'bank', 'ewallet')
