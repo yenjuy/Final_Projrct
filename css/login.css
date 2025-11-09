@@ -222,7 +222,6 @@ body {
     display: none;
 }
 
-/* Responsive Login */
 @keyframes slideIn {
     from {
         opacity: 0;

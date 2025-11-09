@@ -225,7 +225,6 @@ body {
     text-decoration: underline;
 }
 
-/* Responsive Register */
 @media (max-width: 768px) {
     #registerForm {
         grid-template-columns: 1fr;

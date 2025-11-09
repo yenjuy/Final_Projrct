@@ -8,8 +8,6 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #f5f5f5;
 }
-
-/* Error state styling */
 .error-state {
     text-align: center;
     padding: 60px 20px;
@@ -36,8 +34,6 @@ body {
     margin-bottom: 25px;
     line-height: 1.6;
 }
-
-/* Loading state styling */
 .loading-message {
     text-align: center;
     padding: 40px 20px;
@@ -57,8 +53,6 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-
-/* Warning Modal Styles */
 .modal-small {
     max-width: 400px;
     margin: 50px auto;
@@ -147,8 +141,6 @@ nav a:hover {
     background: #f5f5f5;
     transform: translateY(-1px);
 }
-
-/* Enhanced profile button styles */
 nav a.logged-in {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -160,8 +152,6 @@ nav a.logged-in:hover {
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     transform: translateY(-2px);
 }
-
-/* User avatar styles */
 .user-avatar {
     width: 36px;
     height: 36px;
@@ -189,8 +179,6 @@ nav a.logged-in:hover {
     border: 2px solid #e9ecef;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-
-/* User info in navbar */
 .user-info-nav {
     display: flex;
     flex-direction: column;
@@ -216,13 +204,9 @@ nav a:not(.logged-in) .user-info-nav::before {
     color: #666;
     font-weight: 400;
 }
-
-/* Enhanced avatar styling */
 .user-avatar, .login-avatar {
     flex-shrink: 0;
 }
-
-/* Ensure proper spacing for navbar items */
 nav a {
     min-height: 44px;
     align-items: center;
@@ -342,8 +326,6 @@ nav a {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
-
-/* Unavailable Room Styling */
 .room-card.unavailable-room {
     opacity: 0.7;
     cursor: not-allowed;
@@ -406,8 +388,6 @@ nav a {
     height: 100%;
     background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.3));
 }
-
-/* Room Status Badges - Diagonal Sale/Promo Style */
 .room-status-badge {
     position: absolute;
     top: 15px;
@@ -434,8 +414,6 @@ nav a {
     transform: rotate(45deg) scale(1.05);
     box-shadow: 0 3px 6px rgba(0,0,0,0.3);
 }
-
-/* Badge Variants */
 .badge-available {
     background: linear-gradient(135deg, #4caf50, #45a049);
 }
@@ -466,8 +444,6 @@ nav a {
     background: linear-gradient(135deg, #2196f3, #1976d2);
     animation: pulse-new 2s infinite;
 }
-
-/* Pulse animations for special badges */
 @keyframes pulse-sale {
     0%, 100% {
         box-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 0 0 0 rgba(233, 30, 99, 0.7);
@@ -768,8 +744,6 @@ nav a {
 .btn-secondary:hover {
     background: #555;
 }
-
-/* Profile Modal Styles */
 .profile-container {
     padding: 20px 0;
 }
@@ -779,8 +753,6 @@ nav a {
     border-radius: 10px;
     padding: 20px;
 }
-
-/* 2-Column Form Layout */
 .profile-form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -817,8 +789,6 @@ nav a {
     color: #333;
     font-weight: 600;
 }
-
-/* Profile form input styling */
 .profile-input {
     width: 100%;
     padding: 10px 12px;
@@ -855,8 +825,6 @@ nav a {
     margin-top: 4px;
     font-style: italic;
 }
-
-/* Profile actions buttons */
 .profile-actions {
     display: flex;
     gap: 10px;
@@ -869,8 +837,6 @@ nav a {
 .profile-actions .btn {
     min-width: 120px;
 }
-
-/* Responsive design for 2-column form */
 @media (max-width: 768px) {
     .profile-form-grid {
         grid-template-columns: 1fr;
@@ -887,8 +853,6 @@ nav a {
         min-width: auto;
     }
 }
-
-/* My Bookings Modal Styles - Simple List */
 .bookings-container {
     padding: 10px 0;
 }
@@ -934,7 +898,7 @@ nav a {
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     padding: 15px;
-    padding-left: 0; /* Remove left padding to make room for indicator line */
+    padding-left: 0;
     transition: all 0.2s;
     position: relative;
     display: flex;
@@ -944,8 +908,6 @@ nav a {
 .booking-item:hover {
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
-/* Status indicator lines */
 .status-indicator {
     width: 4px;
     height: 100%;
@@ -956,15 +918,15 @@ nav a {
 }
 
 .status-line-pending {
-    background: linear-gradient(135deg, #ff9800, #f57c00); /* Orange gradient */
+    background: linear-gradient(135deg, #ff9800, #f57c00);
 }
 
 .status-line-confirmed {
-    background: linear-gradient(135deg, #4caf50, #45a049); /* Green gradient */
+    background: linear-gradient(135deg, #4caf50, #45a049);
 }
 
 .status-line-cancelled {
-    background: linear-gradient(135deg, #f44336, #d32f2f); /* Red gradient */
+    background: linear-gradient(135deg, #f44336, #d32f2f);
 }
 
 .booking-row {
@@ -972,7 +934,7 @@ nav a {
     justify-content: space-between;
     align-items: center;
     gap: 15px;
-    padding-left: 15px; /* Add padding to avoid overlap with indicator line */
+    padding-left: 15px;
     width: 100%;
 }
 
@@ -1017,8 +979,6 @@ nav a {
 .btn-cancel:hover {
     background: #d32f2f;
 }
-
-/* Modal buttons styling */
 .modal-buttons {
     display: flex;
     gap: 10px;
@@ -1061,8 +1021,6 @@ nav a {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
-
-/* Warning icon styling */
 .warning-icon {
     font-size: 48px;
     margin-bottom: 15px;
@@ -1076,8 +1034,6 @@ nav a {
     text-align: center;
     margin: 10px 0;
 }
-
-/* Modal content styling for consistency */
 .modal-content.modal-small {
     max-width: 400px;
     text-align: center;
@@ -1132,8 +1088,6 @@ nav a {
     color: #999;
     font-size: 14px;
 }
-
-/* Scrollbar Styles */
 .bookings-list::-webkit-scrollbar {
     width: 6px;
 }
@@ -1151,8 +1105,6 @@ nav a {
 .bookings-list::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
-
-/* Responsive Design */
 @media (max-width: 768px) {
     header {
         padding: 15px 20px;
@@ -1208,8 +1160,6 @@ nav a {
         align-items: center;
     }
 }
-
-/* Barcode Styling */
 .barcode-container {
     text-align: center;
     padding: 20px;
@@ -1293,8 +1243,6 @@ nav a {
     font-size: 12px;
     margin: 0 5px;
 }
-
-/* Booking Detail Modal Styling */
 .booking-detail-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1396,4 +1344,112 @@ nav a {
     .btn-download {
         width: 100%;
     }
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.profile-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.profile-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.profile-input.readonly {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.input-note {
+    display: block;
+    margin-top: 5px;
+    color: #6c757d;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.readonly-value {
+    color: #495057;
+    font-weight: 500;
+    padding: 10px 0;
+}
+
+.profile-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5a6fd8;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    z-index: 10000;
+    animation: slideIn 0.3s ease;
+}
+
+.notification.success {
+    background: #4CAF50;
+}
+
+.notification.error {
+    background: #f44336;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
