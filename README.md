@@ -118,7 +118,7 @@ Final_Project/
 │
 ├── index.html                  # Entry point (redirect ke Home.html)
 ├── create_tables.sql           # Database schema setup
-└── README.md                   # File ini! 📖
+└── README.md                   # Readme
 ```
 
 ## 🔄 Alur Sistem (System Flow)
@@ -142,9 +142,6 @@ Final_Project/
 
 ### API Flow:
 - **Frontend JS** → **PHP API** → **MySQL Database**
-- JSON responses untuk semua API calls
-- Session-based authentication
-- Prepared statements untuk security
 
 ## 🚀 Quick Start DB
 
@@ -181,4 +178,7 @@ Final_Project/
 3. **Follow pattern** yang sudah ada (prepared statements, error handling)
 4. **Test di local** sebelum production
 5. **Backup database** sebelum schema changes
+
 ---
+
+**Created By Yeni Juwita**

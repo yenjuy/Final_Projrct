@@ -5,9 +5,7 @@ CREATE DATABASE IF NOT EXISTS seru_db
 
 USE seru_db;
 
--- ===============================
 -- Table: users
--- ===============================
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -16,18 +14,14 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL
 );
 
--- ===============================
 -- Table: admins
--- ===============================
 CREATE TABLE IF NOT EXISTS admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     admin_name VARCHAR(100) NOT NULL,
     password VARCHAR(255) NOT NULL
 );
 
--- ===============================
 -- Table: rooms
--- ===============================
 CREATE TABLE IF NOT EXISTS rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_name VARCHAR(100) NOT NULL,
@@ -36,9 +30,7 @@ CREATE TABLE IF NOT EXISTS rooms (
     status VARCHAR(20) DEFAULT 'available'
 );
 
--- ===============================
 -- Table: booking
--- ===============================
 CREATE TABLE IF NOT EXISTS booking (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
@@ -58,21 +50,15 @@ CREATE TABLE IF NOT EXISTS booking (
     CONSTRAINT fk_booking_room FOREIGN KEY (room_id) REFERENCES rooms (id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
--- ===============================
 -- Insert default admin
--- ===============================
 INSERT IGNORE INTO admins (admin_name, password)
 VALUES ('admin', '$2a$12$X.blHvQ0.rH3hXgBkYk8Buzwv3S18dIEx081SjiOXuSGvqR/OAIu2'); -- Password = admin123
 
--- ==========================================
 -- Dummy Data: users
--- ==========================================
 INSERT INTO users (name, no_telp, email, password) VALUES
 ('John Doe', '081234567890', 'john.doe@example.com', '$2a$12$F/1uSJ0DTAks/RbAa/p7xe/7r/CEegsYBr54fCIrhy2.VYcZdkCUW'); -- password123
 
--- ==========================================
 -- Dummy Data: rooms
--- ==========================================
 INSERT INTO rooms (room_name, price, description, status) VALUES
 ('Deluxe Room', 750000, 'Spacious room with king-size bed and balcony view.', 'available'),
 ('Standard Room', 500000, 'Comfortable room with queen-size bed.', 'unavailable'),
@@ -80,24 +66,11 @@ INSERT INTO rooms (room_name, price, description, status) VALUES
 ('Single Room', 350000, 'Compact room for solo travelers.', 'available'),
 ('Family Room', 950000, 'Large room for up to 4 guests.', 'unavailable');
 
--- ==========================================
 -- Dummy Data: booking
--- ==========================================
 INSERT INTO booking (user_id, room_id, name, email, phone_number, start_date, end_date, price, payment, status) VALUES
-(1, 1, 'John Doe', 'john.doe@example.com', '081234567890', '2025-10-01', '2025-10-03', 1500000, 'cash', 'confirmed'),
-(2, 2, 'Jane Smith', 'jane.smith@example.com', '082345678901', '2025-09-15', '2025-09-18', 1500000, 'credit', 'cancelled'),
-(3, 3, 'Michael Lee', 'michael.lee@example.com', '083456789012', '2025-11-02', '2025-11-05', 3600000, 'bank', 'confirmed'),
-(4, 4, 'Emily Davis', 'emily.davis@example.com', '084567890123', '2025-08-10', '2025-08-12', 700000, 'ewallet', 'confirmed'),
-(5, 5, 'Daniel Wilson', 'daniel.wilson@example.com', '085678901234', '2025-07-20', '2025-07-25', 4750000, 'cash', 'cancelled'),
-(1, 3, 'John Doe', 'john.doe@example.com', '081234567890', '2025-10-20', '2025-10-22', 2400000, 'credit', 'confirmed'),
-(2, 4, 'Jane Smith', 'jane.smith@example.com', '082345678901', '2025-11-05', '2025-11-06', 350000, 'bank', 'cancelled'),
-(3, 1, 'Michael Lee', 'michael.lee@example.com', '083456789012', '2025-09-01', '2025-09-03', 1500000, 'ewallet', 'confirmed'),
-(4, 2, 'Emily Davis', 'emily.davis@example.com', '084567890123', '2025-08-25', '2025-08-28', 1500000, 'cash', 'confirmed'),
-(5, 5, 'Daniel Wilson', 'daniel.wilson@example.com', '085678901234', '2025-10-10', '2025-10-12', 1900000, 'credit', 'cancelled');
+(1, 1, 'John Doe', 'john.doe@example.com', '081234567890', '2025-10-01', '2025-10-03', 1500000, 'cash', 'confirmed');
 
--- ===============================
 -- Indexes for performance
--- ===============================
 CREATE INDEX idx_users_email ON users (email);
 CREATE INDEX idx_booking_user_id ON booking (user_id);
 CREATE INDEX idx_booking_room_id ON booking (room_id);
