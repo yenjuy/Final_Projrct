@@ -1,35 +1,29 @@
-// Admin Authentication - Simple and clean
 const adminAuth = {
     sessionKey: 'adminSession',
     sessionHours: 24,
 
-    // Initialize authentication
     init() {
         this.setupForm();
         this.checkSession();
     },
 
-    // Setup login form
     setupForm() {
         const form = document.getElementById('adminLoginForm');
         if (!form) return;
 
         form.addEventListener('submit', (e) => this.handleLogin(e));
 
-        // Password toggle
         const toggle = document.getElementById('passwordToggle');
         const password = document.getElementById('password');
         if (toggle && password) {
             toggle.addEventListener('click', () => this.togglePassword(password, toggle));
         }
 
-        // Clear errors on input
         form.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', () => this.hideError());
         });
     },
 
-    // Handle login submission
     async handleLogin(e) {
         e.preventDefault();
 
@@ -48,7 +42,6 @@ const adminAuth = {
         }
     },
 
-    // Get form credentials
     getCredentials() {
         return {
             adminName: document.getElementById('adminName')?.value?.trim() || '',
@@ -56,7 +49,6 @@ const adminAuth = {
         };
     },
 
-    // Validate input
     validateInput({ adminName, password }) {
         if (!adminName || !password) {
             this.showError('Please fill in all fields');
@@ -65,10 +57,8 @@ const adminAuth = {
         return true;
     },
 
-    // Perform login
     async login({ adminName, password }) {
         try {
-            // Call the real API
             const response = await fetch('../api/auth.php?action=admin_login', {
                 method: 'POST',
                 headers: {
@@ -96,15 +86,26 @@ const adminAuth = {
                     window.location.href = 'dashboard.html';
                 }, 1000);
             } else {
-                throw new Error(result.error || 'Invalid credentials');
+                throw new Error(this.getLoginErrorMessage(result.error));
             }
         } catch (error) {
-            console.error('Login error:', error);
-            throw new Error(error.message || 'Login failed');
+            throw new Error(this.getLoginErrorMessage(error.message));
         }
     },
 
-    // Session management
+    getLoginErrorMessage(serverError) {
+        const errorMap = {
+            'Admin tidak ditemukan': 'Username tidak terdaftar',
+            'Username atau password salah': 'Username atau password salah',
+            'Admin not found': 'Username tidak terdaftar',
+            'Invalid admin credentials': 'Username atau password salah',
+            'Database connection failed': 'Terjadi kesalahan server, coba lagi nanti',
+            'Login failed': 'Login gagal, coba lagi'
+        };
+
+        return errorMap[serverError] || 'Login gagal, periksa kembali username dan password';
+    },
+
     setSession(data) {
         if (!data?.id || !data?.admin_name) {
             throw new Error('Invalid session data');
@@ -147,7 +148,6 @@ const adminAuth = {
         return window.location.pathname.includes('login.html');
     },
 
-    // UI Helpers
     togglePassword(input, toggle) {
         const icon = toggle?.querySelector('i');
         if (!icon) return;
@@ -177,13 +177,21 @@ const adminAuth = {
         const errorEl = document.getElementById('errorMessage');
         if (errorEl) {
             errorEl.textContent = message;
+            errorEl.style.display = 'block';
             errorEl.classList.add('show');
+
+            setTimeout(() => {
+                this.hideError();
+            }, 5000);
         }
     },
 
     hideError() {
         const errorEl = document.getElementById('errorMessage');
-        if (errorEl) errorEl.classList.remove('show');
+        if (errorEl) {
+            errorEl.classList.remove('show');
+            errorEl.style.display = 'none';
+        }
     },
 
     showSuccess(message) {
@@ -206,7 +214,6 @@ const adminAuth = {
         }
     },
 
-    // Public methods
     getCurrentAdmin() {
         return this.getSession();
     },
@@ -230,9 +237,8 @@ const adminAuth = {
     }
 };
 
-// Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     adminAuth.init();
     window.adminAuth = adminAuth;
-    window.adminUtils = adminAuth; // Backward compatibility
+    window.adminUtils = adminAuth;
 });

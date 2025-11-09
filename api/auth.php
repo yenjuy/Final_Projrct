@@ -27,6 +27,9 @@ switch ($action) {
     case 'admin_login':
         handleAdminLogin($conn);
         break;
+    case 'admin_logout':
+        handleAdminLogout();
+        break;
     case 'update_profile':
         handleUpdateProfile($conn);
         break;
@@ -120,12 +123,12 @@ function handleAdminLogin($conn) {
 
     $admin = findAdminByName($conn, $adminName);
     if (!$admin) {
-        sendError('Admin not found', 404);
+        sendError('Admin tidak ditemukan', 404);
         return;
     }
 
     if (!password_verify($password, $admin['password'])) {
-        sendError('Invalid admin credentials', 401);
+        sendError('Username atau password salah', 401);
         return;
     }
 
@@ -138,6 +141,14 @@ function handleAdminLogin($conn) {
             'loginTime' => date('Y-m-d H:i:s')
         ]
     ]);
+}
+
+function handleAdminLogout() {
+    unset($_SESSION['admin_id']);
+    unset($_SESSION['admin_name']);
+    unset($_SESSION['admin_login_time']);
+
+    sendSuccess([], 'Admin logged out successfully');
 }
 
 //DB Opperations
@@ -245,6 +256,7 @@ function setUserSession($user) {
 function setAdminSession($admin) {
     $_SESSION['admin_id'] = $admin['id'];
     $_SESSION['admin_name'] = $admin['admin_name'];
+    $_SESSION['admin_login_time'] = time();
 }
 
 //Utils

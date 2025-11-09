@@ -264,8 +264,30 @@ function formatRoomData($room) {
 
 function requireAdmin() {
     if (!isset($_SESSION['admin_id'])) {
-        sendError('Admin access required', 403);
+        http_response_code(401);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Admin authentication required',
+            'redirect' => '/admin/login.html'
+        ]);
         exit();
+    }
+
+    if (isset($_SESSION['admin_login_time'])) {
+        $loginTime = $_SESSION['admin_login_time'];
+        $currentTime = time();
+        $timeout = 24 * 60 * 60; 
+
+        if (($currentTime - $loginTime) > $timeout) {
+            session_destroy();
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Session expired, please login again',
+                'redirect' => '/admin/login.html'
+            ]);
+            exit();
+        }
     }
 }
 

@@ -1,4 +1,3 @@
-// Dashboard Controller - Simplified and maintainable
 class DashboardController {
     constructor() {
         this.currentPage = 'bookings';
@@ -25,6 +24,40 @@ class DashboardController {
         }
     }
 
+    async handleApiCall(url, options = {}) {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+
+            const data = await response.json();
+
+            if (response.status === 401 && data.redirect) {
+                window.location.href = data.redirect;
+                return null;
+            }
+
+            if (!response.ok) {
+                throw new Error(data.error || `HTTP error! status: ${response.status}`);
+            }
+
+            return data;
+        } catch (error) {
+            console.error('API call error:', error);
+
+            if (error.message.includes('authentication') || error.message.includes('unauthorized')) {
+                window.location.href = 'login.html';
+                return null;
+            }
+
+            throw error;
+        }
+    }
+
     setupEventListeners() {
         const menuItems = document.querySelectorAll('.menu-item');
         const pageNames = ['bookings', 'rooms', 'customers'];
@@ -35,7 +68,6 @@ class DashboardController {
             });
         });
 
-        // Setup logout
         const logoutMenu = document.querySelector('.logout-menu');
         if (logoutMenu) {
             logoutMenu.addEventListener('click', (e) => {
@@ -44,20 +76,16 @@ class DashboardController {
             });
         }
 
-        // Modal setup
         this.setupModal();
     }
 
     setupModal() {
-        // Setup detail modal
         const detailModal = document.getElementById('detailModal');
         const detailCloseBtn = detailModal?.querySelector('.close-modal');
 
         if (detailCloseBtn) {
             detailCloseBtn.onclick = () => detailModal.style.display = 'none';
         }
-
-        // Setup logout modal
         const logoutModal = document.getElementById('logoutModal');
         const logoutCloseBtn = logoutModal?.querySelector('.close-modal');
 
@@ -65,7 +93,6 @@ class DashboardController {
             logoutCloseBtn.onclick = () => logoutModal.style.display = 'none';
         }
 
-        // Global click handler to close modals when clicking outside
         window.onclick = (event) => {
             if (event.target === detailModal) detailModal.style.display = 'none';
             if (event.target === logoutModal) logoutModal.style.display = 'none';
@@ -83,7 +110,6 @@ class DashboardController {
         this.updateActiveMenu(page);
         this.updateUserInfo();
 
-        // Setup search listeners after DOM is updated
         setTimeout(() => {
             this.setupSearchListeners();
         }, 100);
@@ -134,12 +160,10 @@ class DashboardController {
         }
     }
 
-    // Logout method for DashboardController
     logout() {
         this.showLogoutModal();
     }
 
-    // Show logout confirmation modal
     showLogoutModal() {
         const modal = document.getElementById('logoutModal');
         const modalBody = document.getElementById('logoutModalBody');
@@ -168,40 +192,18 @@ class DashboardController {
 
     async loadCustomersData() {
         try {
-            // Load customers data from API
-            const response = await fetch('../api/dashboard.php?action=customers');
+            const data = await this.handleApiCall('../api/dashboard.php?action=customers');
+            if (!data) return;
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const text = await response.text();
-
-            // Check if response is HTML (error page) instead of JSON
-            if (text.trim().startsWith('<')) {
-                console.error('API returned HTML instead of JSON:', text.substring(0, 200));
-                throw new Error('Server returned HTML error page instead of JSON');
-            }
-
-            let result;
-            try {
-                result = JSON.parse(text);
-            } catch (parseError) {
-                console.error('JSON Parse Error:', parseError);
-                console.error('Response text:', text.substring(0, 500));
-                throw new Error('Invalid JSON response from server');
-            }
-
-            if (result.success) {
-                this.updateCustomersUI(result.data);
+            if (data.success) {
+                this.updateCustomersUI(data.data);
             } else {
-                throw new Error(result.error || 'API returned error');
+                throw new Error(data.error || 'API returned error');
             }
         } catch (error) {
             console.error('Error loading customers data:', error);
             this.showNotification(`Error loading customers data: ${error.message}`, 'error');
 
-            // Fallback to empty data
             this.updateCustomersUI({
                 customers: [],
                 stats: { total_customers: 0, active_this_month: 0 }
@@ -211,40 +213,18 @@ class DashboardController {
 
     async loadRoomsData() {
         try {
-            // Load rooms data from API
-            const response = await fetch('../api/dashboard.php?action=rooms');
+            const data = await this.handleApiCall('../api/dashboard.php?action=rooms');
+            if (!data) return; 
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const text = await response.text();
-
-            // Check if response is HTML (error page) instead of JSON
-            if (text.trim().startsWith('<')) {
-                console.error('API returned HTML instead of JSON:', text.substring(0, 200));
-                throw new Error('Server returned HTML error page instead of JSON');
-            }
-
-            let result;
-            try {
-                result = JSON.parse(text);
-            } catch (parseError) {
-                console.error('JSON Parse Error:', parseError);
-                console.error('Response text:', text.substring(0, 500));
-                throw new Error('Invalid JSON response from server');
-            }
-
-            if (result.success) {
-                this.updateRoomsUI(result.data);
+            if (data.success) {
+                this.updateRoomsUI(data.data);
             } else {
-                throw new Error(result.error || 'API returned error');
+                throw new Error(data.error || 'API returned error');
             }
         } catch (error) {
             console.error('Error loading rooms data:', error);
             this.showNotification(`Error loading rooms data: ${error.message}`, 'error');
 
-            // Fallback to empty data
             this.updateRoomsUI({
                 rooms: [],
                 stats: { total_rooms: 0, available_rooms: 0, occupied_rooms: 0, total_today_bookings: 0 }
@@ -254,47 +234,24 @@ class DashboardController {
 
     async loadBookingsData() {
         try {
-            // Load bookings data from API
-            const response = await fetch('../api/bookings.php');
+            const data = await this.handleApiCall('../api/bookings.php');
+            if (!data) return; 
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const text = await response.text();
-
-            // Check if response is HTML (error page) instead of JSON
-            if (text.trim().startsWith('<')) {
-                console.error('API returned HTML instead of JSON:', text.substring(0, 200));
-                throw new Error('Server returned HTML error page instead of JSON');
-            }
-
-            let result;
-            try {
-                result = JSON.parse(text);
-            } catch (parseError) {
-                console.error('JSON Parse Error:', parseError);
-                console.error('Response text:', text.substring(0, 500));
-                throw new Error('Invalid JSON response from server');
-            }
-
-            if (result.success) {
-                this.updateBookingsUI(result.data);
+            if (data.success) {
+                this.updateBookingsUI(data.data);
             } else {
-                throw new Error(result.error || 'API returned error');
+                throw new Error(data.error || 'API returned error');
             }
         } catch (error) {
             console.error('Error loading bookings data:', error);
             this.showNotification(`Error loading bookings data: ${error.message}`, 'error');
 
-            // Fallback to empty data
             this.updateBookingsUI([]);
         }
     }
 
     
     updateCustomersUI(data) {
-        // Update statistics cards for customers tab
         const totalCustomersElement = document.getElementById('totalCustomersCount');
         const activeThisMonthElement = document.getElementById('activeThisMonthCount');
 
@@ -306,7 +263,6 @@ class DashboardController {
             activeThisMonthElement.textContent = data.stats.active_this_month;
         }
 
-        // Update customers table
         const customersTableBody = document.querySelector('.rooms-table tbody');
         if (customersTableBody && data.customers) {
             customersTableBody.innerHTML = '';
@@ -331,13 +287,11 @@ class DashboardController {
     }
 
     updateRoomsUI(data) {
-        // Update statistics cards for rooms tab
         const totalRoomsElement = document.getElementById('totalRoomsCount');
         if (totalRoomsElement) {
             totalRoomsElement.textContent = data.stats.total_rooms;
         }
 
-        // Update rooms table
         const roomsTableBody = document.querySelector('.rooms-table tbody');
         if (roomsTableBody && data.rooms) {
             roomsTableBody.innerHTML = '';
@@ -360,7 +314,6 @@ class DashboardController {
     }
 
     updateBookingsUI(bookings) {
-        // Update statistics cards for bookings tab
         const totalBookingsElement = document.getElementById('totalBookingsCount');
         const activeTodayElement = document.getElementById('activeTodayCount');
 
@@ -369,7 +322,6 @@ class DashboardController {
         }
 
         if (activeTodayElement) {
-            // Count active bookings for today
             const today = new Date().toISOString().split('T')[0];
             const activeTodayCount = bookings ? bookings.filter(booking =>
                 booking.status === 'confirmed' &&
@@ -379,7 +331,6 @@ class DashboardController {
             activeTodayElement.textContent = activeTodayCount;
         }
 
-        // Update bookings table
         const bookingsTableBody = document.querySelector('.rooms-table tbody');
         if (bookingsTableBody && bookings) {
             bookingsTableBody.innerHTML = '';
@@ -441,7 +392,6 @@ class DashboardController {
         return this.pages[page] || '';
     }
 
-    // Page templates
     pages = {
         bookings: `
             <div class="header">
@@ -643,10 +593,8 @@ class DashboardController {
         `
     };
 
-    // Modal and detail methods
     async showBookingDetail(bookingId) {
         try {
-            // Show loading modal
             const modalBody = document.getElementById('modalBody');
             modalBody.innerHTML = `
                 <div class="loading-message">
@@ -657,10 +605,8 @@ class DashboardController {
             `;
             document.getElementById('detailModal').style.display = 'block';
 
-            // Extract numeric ID from booking ID (remove BK prefix if exists)
             const numericId = bookingId.replace('BK', '');
 
-            // Get booking data from API
             const response = await fetch(`../api/bookings.php?action=get_booking&id=${numericId}`);
             const result = await response.json();
 
@@ -679,7 +625,6 @@ class DashboardController {
 
     async showCustomerDetail(customerDataOrId) {
         try {
-            // Show loading modal
             const modalBody = document.getElementById('modalBody');
             modalBody.innerHTML = `
                 <div class="loading-message">
@@ -692,18 +637,14 @@ class DashboardController {
 
             let customer, bookingData;
 
-            // Check if the parameter is an object (for direct calls) or string (for legacy calls)
             if (typeof customerDataOrId === 'object') {
                 customer = customerDataOrId;
 
-                // Get booking history based on customer type
                 if (customer.id && typeof customer.id === 'number') {
-                    // Registered user
                     const bookingResponse = await fetch(`../api/bookings.php?action=user_bookings&user_id=${customer.id}`);
                     const bookingResult = await bookingResponse.json();
                     bookingData = bookingResult.success ? bookingResult.data : [];
                 } else if (customer.customer_type === 'Guest') {
-                    // Guest customer - search by name/email
                     const allBookingsResponse = await fetch(`../api/bookings.php`);
                     const allBookingsResult = await allBookingsResponse.json();
                     if (allBookingsResult.success) {
@@ -714,7 +655,6 @@ class DashboardController {
                     }
                 }
             } else {
-                // Legacy behavior - fetch customer by ID
                 const customerResponse = await fetch(`../api/dashboard.php?action=user&id=${customerDataOrId}`);
                 const customerResult = await customerResponse.json();
 
@@ -725,7 +665,6 @@ class DashboardController {
                 }
                 customer = customerResult.data;
 
-                // Get customer bookings from API
                 const bookingResponse = await fetch(`../api/bookings.php?action=user_bookings&user_id=${customerDataOrId}`);
                 const bookingResult = await bookingResponse.json();
                 bookingData = bookingResult.success ? bookingResult.data : [];
@@ -747,7 +686,6 @@ class DashboardController {
 
     async showRoomDetail(roomId) {
         try {
-            // Get room details from rooms API
             const response = await fetch(`../api/rooms.php?action=get_room&id=${roomId}`);
             const result = await response.json();
 
@@ -771,7 +709,6 @@ class DashboardController {
 
     async showEditRoomModal(roomId) {
         try {
-            // Get room details from rooms API
             const response = await fetch(`../api/rooms.php?action=get_room&id=${roomId}`);
             const result = await response.json();
 
@@ -792,7 +729,6 @@ class DashboardController {
 
         document.getElementById('detailModal').style.display = 'block';
 
-        // Setup form handlers
         this.setupEditRoomForm(room);
     }
 
@@ -802,7 +738,6 @@ class DashboardController {
 
         document.getElementById('detailModal').style.display = 'block';
 
-        // Setup form handlers
         this.setupAddRoomForm();
     }
 
@@ -812,7 +747,6 @@ class DashboardController {
 
         document.getElementById('detailModal').style.display = 'block';
 
-        // Setup form handlers
         this.setupAddBookingForm();
     }
 
@@ -820,7 +754,6 @@ class DashboardController {
         const form = document.getElementById('editRoomForm');
         if (!form) return;
 
-        // Handle form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             await this.handleEditRoomSubmit(room.id);
@@ -831,7 +764,6 @@ class DashboardController {
         const form = document.getElementById('addRoomForm');
         if (!form) return;
 
-        // Handle form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             await this.handleAddRoomSubmit();
@@ -847,7 +779,6 @@ class DashboardController {
         try {
             this.showNotification('Updating room...', 'info');
 
-            // Update room data (tanpa image_url)
             const roomData = {
                 room_name: formData.get('room_name'),
                 price: formData.get('price'),
@@ -868,7 +799,6 @@ class DashboardController {
             if (result.success) {
                 this.showNotification('Room updated successfully!', 'success');
                 this.closeModal();
-                // Reload rooms data
                 this.loadRoomsData();
             } else {
                 throw new Error(result.error || 'Failed to update room');
@@ -888,7 +818,6 @@ class DashboardController {
         try {
             this.showNotification('Creating room...', 'info');
 
-            // Create room data
             const roomData = {
                 room_name: formData.get('room_name'),
                 price: formData.get('price'),
@@ -909,7 +838,6 @@ class DashboardController {
             if (result.success) {
                 this.showNotification('Room created successfully!', 'success');
                 this.closeModal();
-                // Reload rooms data
                 this.loadRoomsData();
             } else {
                 throw new Error(result.error || 'Failed to create room');
@@ -925,7 +853,6 @@ class DashboardController {
     }
 
     getBookingDetailTemplate(booking) {
-        // Calculate duration in days
         const startDate = new Date(booking.start_date);
         const endDate = new Date(booking.end_date);
         const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
@@ -958,13 +885,11 @@ class DashboardController {
     getCustomerDetailTemplate(customer, bookingData) {
         const totalBookings = bookingData ? bookingData.length : 0;
 
-        // Calculate booking statistics
         const activeBookings = bookingData ?
             bookingData.filter(booking => booking.status === 'confirmed').length : 0;
         const cancelledBookings = bookingData ?
             bookingData.filter(booking => booking.status === 'cancelled').length : 0;
 
-        // Find last booking date
         const lastBooking = bookingData && bookingData.length > 0 ?
             bookingData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0] : null;
 
@@ -1166,16 +1091,13 @@ class DashboardController {
         const form = document.getElementById('addBookingForm');
         if (!form) return;
 
-        // Load rooms for dropdown
         this.loadRoomsForBooking();
 
-        // Handle form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             await this.handleAddBookingSubmit();
         });
 
-        // Handle date validation
         const startDateInput = form.querySelector('input[name="start_date"]');
         const endDateInput = form.querySelector('input[name="end_date"]');
 
@@ -1214,9 +1136,8 @@ class DashboardController {
         try {
             this.showNotification('Creating booking...', 'info');
 
-            // Create booking data
             const bookingData = {
-                user_id: null, // Can be null for walk-in customers
+                user_id: null,
                 room_id: parseInt(formData.get('room_id')),
                 name: formData.get('name'),
                 email: formData.get('email'),
@@ -1241,7 +1162,6 @@ class DashboardController {
             if (result.success) {
                 this.showNotification('Booking created successfully!', 'success');
                 this.closeModal();
-                // Reload bookings data
                 this.loadBookingsData();
             } else {
                 throw new Error(result.error || 'Failed to create booking');
@@ -1252,59 +1172,7 @@ class DashboardController {
         }
     }
 
-    // Data storage
-    bookingsData = {
-        'BK001': {
-            id: '#BK001', customer: 'PT. Teknologi Maju', email: 'info@teknologimaju.com', phone: '+62 21 1234567',
-            room: 'Meeting Room', startDate: '26 October 2025', endDate: '26 October 2025', duration: '1 Day',
-            status: 'Confirmed', amount: 'Rp 500,000', paymentStatus: 'Paid',
-            notes: 'Membutuhkan projector dan whiteboard tambahan'
-        },
-        'BK002': {
-            id: '#BK002', customer: 'CV. Digital Creative', email: 'contact@digitalcreative.id', phone: '+62 21 9876543',
-            room: 'Private Office', startDate: '26 October 2025', endDate: '28 October 2025', duration: '3 Days',
-            status: 'Confirmed', amount: 'Rp 3,600,000', paymentStatus: 'Paid',
-            notes: 'Event launching produk baru'
-        },
-        'BK003': {
-            id: '#BK003', customer: 'Startup Indonesia', email: 'hello@startupid.com', phone: '+62 812 3456789',
-            room: 'Virtual Office', startDate: '27 October 2025', endDate: '30 October 2025', duration: '4 Days',
-            status: 'Pending', amount: 'Rp 2,800,000', paymentStatus: 'Pending',
-            notes: 'Alamat virtual untuk bisnis startup'
-        }
-    };
-
-    customersData = {
-        'teknologi-maju': {
-            name: 'PT. Teknologi Maju', email: 'info@teknologimaju.com', phone: '+62 21 1234567',
-            address: 'Jl. Teknologi No. 123, Jakarta', totalBookings: 15, totalSpent: 'Rp 7,500,000',
-            joinDate: '15 Januari 2024', status: 'Active'
-        },
-        'digital-creative': {
-            name: 'CV. Digital Creative', email: 'contact@digitalcreative.id', phone: '+62 21 9876543',
-            address: 'Jl. Kreatif No. 45, Jakarta', totalBookings: 8, totalSpent: 'Rp 4,200,000',
-            joinDate: '20 Maret 2024', status: 'Active'
-        },
-        'startup-indonesia': {
-            name: 'Startup Indonesia', email: 'hello@startupid.com', phone: '+62 812 3456789',
-            address: 'Jl. Startup No. 78, Jakarta', totalBookings: 22, totalSpent: 'Rp 15,400,000',
-            joinDate: '10 Februari 2024', status: 'Active'
-        },
-        'konsultan-bisnis': {
-            name: 'Konsultan Bisnis', email: 'admin@konsultanbisnis.co.id', phone: '+62 21 5551234',
-            address: 'Jl. Bisnis No. 234, Jakarta', totalBookings: 5, totalSpent: 'Rp 1,250,000',
-            joinDate: '5 Maret 2024', status: 'Active'
-        },
-        'sukses-makmur': {
-            name: 'PT. Sukses Makmur', email: 'cs@suksesmakmur.com', phone: '+62 21 7778888',
-            address: 'Jl. Sukses No. 567, Jakarta', totalBookings: 18, totalSpent: 'Rp 17,100,000',
-            joinDate: '1 Januari 2024', status: 'Active'
-        }
-    };
-
-    // Search functionality
     setupSearchListeners() {
-        // Room search
         const roomSearchInput = document.getElementById('roomSearchInput');
         if (roomSearchInput) {
             roomSearchInput.addEventListener('keypress', (e) => {
@@ -1314,7 +1182,6 @@ class DashboardController {
             });
         }
 
-        // Customer search
         const customerSearchInput = document.getElementById('customerSearchInput');
         if (customerSearchInput) {
             customerSearchInput.addEventListener('keypress', (e) => {
@@ -1324,7 +1191,6 @@ class DashboardController {
             });
         }
 
-        // Booking search
         const bookingSearchInput = document.getElementById('bookingSearchInput');
         if (bookingSearchInput) {
             bookingSearchInput.addEventListener('keypress', (e) => {
@@ -1334,7 +1200,6 @@ class DashboardController {
             });
         }
 
-        // Booking status filter
         const statusFilter = document.getElementById('statusFilter');
         if (statusFilter) {
             statusFilter.addEventListener('change', () => {
@@ -1348,7 +1213,6 @@ class DashboardController {
         const rows = tableBody ? tableBody.querySelectorAll('tr') : [];
 
         if (!searchTerm) {
-            // If search is empty, show all rows
             rows.forEach(row => row.style.display = '');
             return;
         }
@@ -1372,7 +1236,6 @@ class DashboardController {
         const rows = tableBody ? tableBody.querySelectorAll('tr') : [];
 
         if (!searchTerm) {
-            // If search is empty, show all rows
             rows.forEach(row => row.style.display = '');
             return;
         }
@@ -1398,14 +1261,12 @@ class DashboardController {
         const tableBody = document.querySelector('#mainContent .rooms-table tbody');
         const rows = tableBody ? tableBody.querySelectorAll('tr') : [];
 
-        // Get all filter values
         const searchTerm = document.getElementById('bookingSearchInput')?.value.toLowerCase() || '';
         const statusFilter = document.getElementById('statusFilter')?.value || '';
 
         rows.forEach(row => {
             let showRow = true;
 
-            // Text search filter (search by ID, customer, room)
             if (searchTerm) {
                 const bookingId = row.cells[0]?.textContent.toLowerCase() || '';
                 const customer = row.cells[1]?.textContent.toLowerCase() || '';
@@ -1418,7 +1279,6 @@ class DashboardController {
                 }
             }
 
-            // Status filter (only apply if status is selected)
             if (statusFilter && showRow) {
                 const status = row.cells[5]?.textContent.toLowerCase() || '';
                 if (status !== statusFilter.toLowerCase()) {
@@ -1426,14 +1286,11 @@ class DashboardController {
                 }
             }
 
-            // Show or hide row
             row.style.display = showRow ? '' : 'none';
         });
     }
 
-    // Delete functionality
     async deleteCustomer(customerId) {
-        // Get customer data for display in modal
         try {
             const response = await fetch(`../api/dashboard.php?action=user&id=${customerId}`);
             const result = await response.json();
@@ -1450,7 +1307,6 @@ class DashboardController {
     }
 
     async deleteRoom(roomId) {
-        // Get room data for display in modal
         try {
             const response = await fetch(`../api/rooms.php?action=get_room&id=${roomId}`);
             const result = await response.json();
@@ -1466,7 +1322,6 @@ class DashboardController {
         }
     }
 
-    // Delete modal functionality
     showDeleteModal(type, data) {
         const modalBody = document.getElementById('deleteModalBody');
         const isCustomer = type === 'customer';
@@ -1540,7 +1395,6 @@ class DashboardController {
                 this.showNotification(`${type === 'customer' ? 'Customer' : 'Room'} deleted successfully!`, 'success');
                 closeDeleteModal();
 
-                // Reload relevant data
                 if (type === 'customer') {
                     this.loadCustomersData();
                 } else {
@@ -1556,12 +1410,10 @@ class DashboardController {
     }
 }
 
-// Global functions for backward compatibility
 function logout() {
     if (dashboard) {
         dashboard.logout();
     } else {
-        // Fallback to simple logout
         if (confirm('Apakah Anda yakin ingin logout?')) {
             if (typeof adminUtils !== 'undefined' && adminUtils.logout) {
                 adminUtils.logout();
@@ -1578,12 +1430,10 @@ function clearSession() {
     location.reload();
 }
 
-// Global logout function
 function logout() {
     if (dashboard) {
         dashboard.logout();
     } else {
-        // Fallback: direct logout without confirm
         if (typeof adminUtils !== 'undefined' && adminUtils.logout) {
             adminUtils.logout();
         } else {
@@ -1593,7 +1443,6 @@ function logout() {
     }
 }
 
-// Delete modal global functions
 function closeDeleteModal() {
     document.getElementById('deleteModal').style.display = 'none';
 }
@@ -1604,7 +1453,6 @@ function confirmDelete(type, id) {
     }
 }
 
-// Logout modal global functions
 function closeLogoutModal() {
     document.getElementById('logoutModal').style.display = 'none';
 }
@@ -1612,17 +1460,14 @@ function closeLogoutModal() {
 function confirmLogout() {
     closeLogoutModal();
 
-    // Clear session using adminUtils
     if (typeof adminUtils !== 'undefined' && adminUtils.logout) {
         adminUtils.logout();
     } else {
-        // Fallback: clear localStorage manually
         localStorage.clear();
         window.location.href = 'login.html';
     }
 }
 
-// Initialize dashboard
 let dashboard;
 document.addEventListener('DOMContentLoaded', () => {
     dashboard = new DashboardController();

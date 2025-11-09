@@ -6,9 +6,41 @@ header('Access-Control-Allow-Methods: GET, OPTIONS');
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
+session_start();
 require_once 'config/Database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit(0);
+
+requireAdminAuth();
+
+function requireAdminAuth() {
+    if (!isset($_SESSION['admin_id'])) {
+        http_response_code(401);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Admin authentication required',
+            'redirect' => '/admin/login.html'
+        ]);
+        exit();
+    }
+
+    if (isset($_SESSION['admin_login_time'])) {
+        $loginTime = $_SESSION['admin_login_time'];
+        $currentTime = time();
+        $timeout = 24 * 60 * 60; 
+
+        if (($currentTime - $loginTime) > $timeout) {
+            session_destroy();
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Session expired, please login again',
+                'redirect' => '/admin/login.html'
+            ]);
+            exit();
+        }
+    }
+}
 
 function success($data = []) {
     echo json_encode(['success' => true, 'data' => $data]);
