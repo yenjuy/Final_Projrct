@@ -1,5 +1,4 @@
 <?php
-// Bookings API
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -13,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 session_start();
 
-// Initialize database connection
+//Init DB Connect
 try {
     $database = Database::getInstance();
     $conn = $database->getConnection();
@@ -57,7 +56,7 @@ switch ($method) {
         sendError('Method not allowed', 405);
 }
 
-// HANDLERS
+//Handlers
 function handleGetAllBookings($conn) {
     try {
         $bookings = getAllBookingsFromDB($conn);
@@ -113,7 +112,6 @@ function handleCreateBooking($conn) {
         return;
     }
 
-    // Validate payment_method against ENUM values
     $validPaymentMethods = ['cash', 'credit', 'bank', 'ewallet'];
     if (!in_array($data['payment_method'], $validPaymentMethods)) {
         sendError('Invalid payment method. Must be one of: ' . implode(', ', $validPaymentMethods), 400);
@@ -154,10 +152,8 @@ function handleUpdateBooking($conn, $id) {
         return;
     }
 
-    // Validate user permissions
     $currentUserId = getCurrentUserId();
 
-    // Allow users to cancel their own confirmed bookings only
     if ($data['status'] === 'cancelled') {
         if ($booking['user_id'] != $currentUserId) {
             sendError('You can only cancel your own bookings', 403);
@@ -168,7 +164,6 @@ function handleUpdateBooking($conn, $id) {
             return;
         }
     } else {
-        // For other status changes, require admin privileges
         requireAdmin();
     }
 
@@ -210,7 +205,7 @@ function handleDeleteBooking($conn, $id) {
     }
 }
 
-// DATABASE OPERATIONS
+//DB Opperations
 function getAllBookingsFromDB($conn) {
     $sql = "SELECT b.*, r.room_name, u.name as user_name, u.email as user_email
             FROM booking b
@@ -318,7 +313,6 @@ function deleteBookingFromDB($conn, $id) {
     return $stmt->execute();
 }
 
-// VALIDATION & UTILITIES
 function validateBookingDates($startDate, $endDate) {
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate)) {
         sendError('Invalid date format. Please use YYYY-MM-DD format.', 400);
@@ -362,7 +356,7 @@ function formatBookingWithDetails($booking) {
         'start_date' => $booking['start_date'],
         'end_date' => $booking['end_date'],
         'price' => (int)$booking['price'],
-        'payment_method' => $booking['payment'], // Map dari database 'payment' ke 'payment_method' untuk frontend
+        'payment_method' => $booking['payment'],
         'status' => $booking['status'],
         'room_name' => $booking['room_name'],
         'user_name' => $booking['user_name'],
@@ -382,7 +376,7 @@ function formatBookingData($booking) {
         'start_date' => $booking['start_date'],
         'end_date' => $booking['end_date'],
         'price' => (int)$booking['price'],
-        'payment_method' => $booking['payment'], // Map dari database 'payment' ke 'payment_method' untuk frontend
+        'payment_method' => $booking['payment'],
         'status' => $booking['status'],
         'room_name' => $booking['room_name'],
         'created_at' => $booking['created_at']

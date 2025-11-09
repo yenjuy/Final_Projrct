@@ -1,19 +1,15 @@
 <?php
-// Dashboard API - Simple and clean
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
 
-// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 require_once 'config/Database.php';
 
-// Handle OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit(0);
 
-// Simple response functions
 function success($data = []) {
     echo json_encode(['success' => true, 'data' => $data]);
     exit;
@@ -25,7 +21,6 @@ function error($message, $code = 400) {
     exit;
 }
 
-// Connect to database
 try {
     $conn = Database::getInstance()->getConnection();
     if (!$conn) {
@@ -35,23 +30,20 @@ try {
     error('Database connection error: ' . $e->getMessage(), 500);
 }
 
-// Get dashboard statistics
+//Get Dashboard Statistik
 function getDashboardStats($conn) {
     $stats = [];
 
-    // Total bookings
     $result = $conn->query("SELECT COUNT(*) as count FROM booking");
     $stats['total_bookings'] = $result->fetch_assoc()['count'] ?? 0;
 
-    // Active today (bookings that are active today)
     $result = $conn->query("SELECT COUNT(*) as count FROM booking WHERE status = 'confirmed' AND (start_date <= CURDATE() AND end_date >= CURDATE())");
     $stats['active_today'] = $result->fetch_assoc()['count'] ?? 0;
 
-    // Total rooms
     $result = $conn->query("SELECT COUNT(*) as count FROM rooms");
     $stats['total_rooms'] = $result->fetch_assoc()['count'] ?? 0;
 
-    // Room details
+
     $roomResult = $conn->query("SELECT r.id, r.room_name, r.price, r.status,
                                        COUNT(b.id) as today_bookings
                                 FROM rooms r
@@ -72,7 +64,6 @@ function getDashboardStats($conn) {
         ];
     }
 
-    // Recent bookings
     $bookingResult = $conn->query("SELECT b.id, u.name as customer_name, u.email,
                                           r.room_name, b.start_date, b.end_date, b.status, b.price
                                    FROM booking b
@@ -98,13 +89,11 @@ function getDashboardStats($conn) {
     return $stats;
 }
 
-// Get customers data
+//Get Customer
 function getCustomersData($conn) {
     try {
         $customers = [];
 
-        // Get all unique customers from bookings (including those without user accounts)
-        // This captures all customers who have ever made a booking, whether they have an account or not
         $query = "SELECT
                     MIN(u.id) as user_id,
                     CASE
@@ -162,20 +151,18 @@ function getCustomersData($conn) {
             ];
         }
 
-        // Get statistics
         $stats = [];
         $stats['total_customers'] = count($customers);
 
         $activeThisMonth = 0;
         $currentMonth = date('Y-m');
         foreach ($customers as $customer) {
-            // For registered users, use user_id; for guests, search by name/email/phone
+            
             if ($customer['customer_type'] === 'Registered') {
                 $bookingQuery = "SELECT COUNT(*) as count FROM booking
                                WHERE user_id = {$customer['id']}
                                AND DATE_FORMAT(created_at, '%Y-%m') = '$currentMonth'";
             } else {
-                // For guests, search by name, email, or phone to find their bookings
                 $bookingQuery = "SELECT COUNT(*) as count FROM booking
                                WHERE name = '{$customer['name']}'
                                AND email = '{$customer['email']}'
@@ -195,12 +182,11 @@ function getCustomersData($conn) {
     }
 }
 
-// Get rooms data
+//Get Room
 function getRoomsData($conn) {
     try {
         $rooms = [];
 
-        // Get all rooms with booking statistics (without image_url from database)
         $query = "SELECT r.id, r.room_name, r.price, r.description, r.status,
                          COUNT(b.id) as total_bookings,
                          COUNT(CASE WHEN DATE(b.created_at) = CURDATE() THEN 1 END) as today_bookings
@@ -215,15 +201,11 @@ function getRoomsData($conn) {
         }
 
         while ($room = $result->fetch_assoc()) {
-            // Generate hardcoded image path based on room ID
-            $imageUrl = getHardcodedImagePath($room['id']);
-
             $rooms[] = [
                 'id' => (int)$room['id'],
                 'name' => $room['room_name'],
                 'price' => formatCurrency($room['price']),
                 'description' => $room['description'],
-                'image_url' => $imageUrl,
                 'status' => $room['status'],
                 'status_class' => $room['status'] === 'available' ? 'available' : 'occupied',
                 'total_bookings' => (int)$room['total_bookings'],
@@ -231,7 +213,6 @@ function getRoomsData($conn) {
             ];
         }
 
-        // Get statistics
         $stats = [];
         $stats['total_rooms'] = count($rooms);
 
@@ -258,7 +239,7 @@ function getRoomsData($conn) {
     }
 }
 
-// Route request
+//Route Req
 $action = $_GET['action'] ?? 'stats';
 
 try {
@@ -304,12 +285,11 @@ function getUserById($conn, $userId) {
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
-        // Map database fields to frontend-friendly names
         return [
             'id' => $user['id'],
             'name' => $user['name'],
             'email' => $user['email'],
-            'phone' => $user['no_telp']  // Map no_telp to phone for frontend consistency
+            'phone' => $user['no_telp']
         ];
     }
 
@@ -317,7 +297,6 @@ function getUserById($conn, $userId) {
 }
 
 function deleteCustomer($conn, $userId) {
-    // Check if user exists
     $checkUser = "SELECT id, name FROM users WHERE id = ?";
     $stmt = $conn->prepare($checkUser);
     $stmt->bind_param("i", $userId);
@@ -330,7 +309,6 @@ function deleteCustomer($conn, $userId) {
     }
 
     try {
-        // Delete all bookings associated with this customer from booking table only
         $deleteBookings = "DELETE FROM booking WHERE user_id = ?";
         $stmt = $conn->prepare($deleteBookings);
         $stmt->bind_param("i", $userId);
@@ -345,29 +323,6 @@ function deleteCustomer($conn, $userId) {
     }
 }
 
-// IMAGE MAPPING FUNCTION - Using Room ID
-function getHardcodedImagePath($roomId) {
-    // Map room IDs to their corresponding image files
-    $roomImageMap = [
-        1 => 'assets/img/meetingroom.jpg',
-        2 => 'assets/img/privateoffice.jpg',
-        3 => 'assets/img/classroom.jpg',
-        4 => 'assets/img/coworkingspace.jpg',
-        5 => 'assets/img/eventspace.jpg',
-        6 => 'assets/img/virtualoffice.jpg',
-        // Add new rooms here - easy to add new entries
-        // 7 => 'assets/img/newroom.jpg',
-        // 8 => 'assets/img/anotherroom.jpg',
-
-        // Default fallback for any room IDs not in the map
-        'default' => 'assets/img/meetingroom.jpg'
-    ];
-
-    // Get image path by room ID
-    return $roomImageMap[$roomId] ?? $roomImageMap['default'];
-}
-
-// Helper functions
 function formatCurrency($amount) {
     return 'Rp ' . number_format($amount, 0, ',', '.');
 }

@@ -1,13 +1,11 @@
 <?php
-// Rooms API
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-// Enable error reporting for debugging
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // Don't display errors, but log them
+ini_set('display_errors', 0); 
 ini_set('log_errors', 1);
 
 require_once 'config/Database.php';
@@ -18,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 session_start();
 
-// Initialize database connection
 try {
     $database = Database::getInstance();
     $conn = $database->getConnection();
@@ -61,7 +58,7 @@ switch ($method) {
         sendError('Method not allowed', 405);
 }
 
-// HANDLERS
+//Handlers
 function handleGetAllRooms($conn) {
     try {
         checkRoomsTable($conn);
@@ -149,7 +146,7 @@ function handleDeleteRoom($conn, $id) {
     }
 }
 
-// DATABASE OPERATIONS
+//DB Operations
 function getAllRoomsFromDB($conn) {
     $sql = "SELECT id, room_name, price, description, IFNULL(status, 'available') as status FROM rooms ORDER BY room_name";
     $result = $conn->query($sql);
@@ -198,9 +195,7 @@ function updateRoomInDB($conn, $id, $room) {
 }
 
 function deleteRoomFromDB($conn, $id) {
-    // Check if room has bookings
     if (hasBookings($conn, $id)) {
-        // Soft delete: Mark room as unavailable and append timestamp to name
         $timestamp = time();
         $deleteSuffix = " (Deleted $timestamp)";
 
@@ -213,7 +208,6 @@ function deleteRoomFromDB($conn, $id) {
 
         return $stmt->execute();
     } else {
-        // Hard delete if no bookings exist
         $sql = "DELETE FROM rooms WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $id);
@@ -232,29 +226,6 @@ function hasBookings($conn, $roomId) {
     return $result->fetch_assoc()['booking_count'] > 0;
 }
 
-// IMAGE MAPPING FUNCTION - Using Room ID
-function getHardcodedImagePath($roomId) {
-    // Map room IDs to their corresponding image files
-    $roomImageMap = [
-        1 => 'assets/img/meetingroom.jpg',
-        2 => 'assets/img/privateoffice.jpg',
-        3 => 'assets/img/classroom.jpg',
-        4 => 'assets/img/coworkingspace.jpg',
-        5 => 'assets/img/eventspace.jpg',
-        6 => 'assets/img/virtualoffice.jpg',
-        // Add new rooms here - easy to add new entries
-        // 7 => 'assets/img/newroom.jpg',
-        // 8 => 'assets/img/anotherroom.jpg',
-
-        // Default fallback for any room IDs not in the map
-        'default' => 'assets/img/meetingroom.jpg'
-    ];
-
-    // Get image path by room ID
-    return $roomImageMap[$roomId] ?? $roomImageMap['default'];
-}
-
-// VALIDATION & UTILITIES
 function checkRoomsTable($conn) {
     $checkTable = $conn->query("SHOW TABLES LIKE 'rooms'");
     if ($checkTable->num_rows === 0) {
@@ -265,7 +236,7 @@ function checkRoomsTable($conn) {
 function prepareRoomData($conn, $data) {
     $status = isset($data['status']) ? strtolower(sanitize($conn, $data['status'])) : 'available';
     if ($status !== 'available' && $status !== 'unavailable') {
-        $status = 'available'; // Default to available for invalid status
+        $status = 'available'; 
     }
 
     return [
@@ -279,7 +250,7 @@ function prepareRoomData($conn, $data) {
 function formatRoomData($room) {
     $status = strtolower($room['status']);
     if ($status !== 'available' && $status !== 'unavailable') {
-        $status = 'available'; // Default to available for any invalid status
+        $status = 'available'; 
     }
 
     return [
@@ -287,7 +258,6 @@ function formatRoomData($room) {
         'room_name' => $room['room_name'],
         'price' => (int)$room['price'],
         'description' => $room['description'],
-        'image_url' => getHardcodedImagePath($room['id']), // Use room ID for hardcoded mapping
         'status' => $status
     ];
 }

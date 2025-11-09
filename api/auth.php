@@ -1,5 +1,4 @@
 <?php
-// Authentication API
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, PUT, OPTIONS');
@@ -12,11 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-// Initialize database connection
+//Init DB Connect
 $database = Database::getInstance();
 $conn = $database->getConnection();
 
-// Route request
+//Route Req
 $action = $_GET['action'] ?? '';
 switch ($action) {
     case 'login':
@@ -35,7 +34,7 @@ switch ($action) {
         sendError('Invalid action', 400);
 }
 
-// HANDLERS
+//Handlers
 function handleLogin($conn) {
     $data = getRequestData();
 
@@ -58,7 +57,6 @@ function handleLogin($conn) {
         return;
     }
 
-    // Create session
     setUserSession($user);
 
     sendSuccess([
@@ -86,7 +84,6 @@ function handleRegister($conn) {
         return;
     }
 
-    // Validate password strength
     if (!validatePasswordStrength($data['password'])) {
         sendError('Password must be at least 8 characters long and include uppercase, lowercase, and numbers');
         return;
@@ -143,7 +140,7 @@ function handleAdminLogin($conn) {
     ]);
 }
 
-// DATABASE OPERATIONS
+//DB Opperations
 function findUserByEmail($conn, $email) {
     $sql = "SELECT id, name, email, no_telp, password FROM users WHERE email = ?";
     $stmt = $conn->prepare($sql);
@@ -177,9 +174,8 @@ function createUser($conn, $user) {
     return $stmt->execute() ? $conn->insert_id : false;
 }
 
-// PROFILE UPDATE HANDLER
+//Profile Update Handlers
 function handleUpdateProfile($conn) {
-    // Check if user is logged in
     if (!isset($_SESSION['user_id'])) {
         sendError('Authentication required', 401);
         return;
@@ -187,20 +183,16 @@ function handleUpdateProfile($conn) {
 
     $data = getRequestData();
 
-    // Get current user ID from session
     $userId = $_SESSION['user_id'];
 
-    // Validate required fields
     if (!isset($data['name']) || empty(trim($data['name']))) {
         sendError('Name is required', 400);
         return;
     }
 
-    // Sanitize inputs
     $name = sanitize($conn, $data['name']);
     $noTelp = isset($data['no_telp']) ? sanitize($conn, $data['no_telp']) : null;
 
-    // Validate password if provided
     if (isset($data['password']) && !empty($data['password'])) {
         if (!validatePasswordStrength($data['password'])) {
             sendError('Password must be at least 8 characters long and include uppercase, lowercase, and numbers');
@@ -208,22 +200,18 @@ function handleUpdateProfile($conn) {
         }
         $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
 
-        // Update user profile with password
         $sql = "UPDATE users SET name = ?, no_telp = ?, password = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("sssi", $name, $noTelp, $hashedPassword, $userId);
     } else {
-        // Update user profile without password
         $sql = "UPDATE users SET name = ?, no_telp = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ssi", $name, $noTelp, $userId);
     }
 
     if ($stmt->execute()) {
-        // Update session name
         $_SESSION['user_name'] = $name;
 
-        // Get updated user data
         $updatedUser = findUserById($conn, $userId);
 
         sendSuccess([
@@ -248,7 +236,7 @@ function findUserById($conn, $id) {
     return $result->num_rows > 0 ? $result->fetch_assoc() : null;
 }
 
-// SESSION MANAGEMENT
+//Session Management
 function setUserSession($user) {
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['user_name'] = $user['name'];
@@ -259,7 +247,7 @@ function setAdminSession($admin) {
     $_SESSION['admin_name'] = $admin['admin_name'];
 }
 
-// UTILITIES
+//Utils
 function getRequestData() {
     $data = json_decode(file_get_contents('php://input'), true);
     return $data ?? [];
@@ -280,22 +268,18 @@ function sanitize($conn, $value) {
 }
 
 function validatePasswordStrength($password) {
-    // Password should be at least 8 characters long
     if (strlen($password) < 8) {
         return false;
     }
 
-    // Should contain at least one uppercase letter
     if (!preg_match('/[A-Z]/', $password)) {
         return false;
     }
 
-    // Should contain at least one lowercase letter
     if (!preg_match('/[a-z]/', $password)) {
         return false;
     }
 
-    // Should contain at least one number
     if (!preg_match('/\d/', $password)) {
         return false;
     }

@@ -1,6 +1,5 @@
 <?php
 class Database {
-    // Database configuration constants
     private const HOST = "localhost";
     private const USERNAME = "root";
     private const PASSWORD = "";
@@ -41,7 +40,7 @@ class Database {
         }
     }
 
-    // Get database connection
+    //DB Connect
     public function getConnection() {
         return $this->connection;
     }
