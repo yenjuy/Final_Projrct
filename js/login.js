@@ -107,7 +107,7 @@ class LoginManager {
     }
 
 
-    // Handle successful login
+    //Handle Success Login
     handleLoginSuccess(userData, remember, returnUrl) {
         if (!userData || !userData.name) {
             console.error('Invalid user data received:', userData);
@@ -125,7 +125,6 @@ class LoginManager {
         }, 1000);
     }
 
-    // Store user session
     storeSession(userData, remember) {
         if (remember) {
             localStorage.setItem('user_session', JSON.stringify(userData));
@@ -134,7 +133,6 @@ class LoginManager {
         }
     }
 
-    // Redirect user after successful login
     redirectUser(returnUrl) {
         let redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : 'Home.html';
 
@@ -230,7 +228,6 @@ class LoginManager {
     }
 }
 
-// Utility functions
 const LoginUtils = {
     showNotification(message, type = 'info') {
         if (window.utils && window.utils.showNotification) {
@@ -270,7 +267,6 @@ const LoginUtils = {
     }
 };
 
-// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     LoginUtils.addShakeStyles();
 

@@ -5,62 +5,27 @@ let currentStep = 1;
 let bookingData = {};
 let myBookings = [];
 
-// Hardcoded image mapping function using room ID
+//Img Mapping
 function getHardcodedImagePath(roomId) {
-    // Map room IDs to their corresponding image files
     const roomImageMap = {
-        1: 'assets/img/meetingroom.jpg',
+        1: 'assets/img/meetingroom.jpg', //ID + Img Path
         2: 'assets/img/privateoffice.jpg',
         3: 'assets/img/classroom.jpg',
         4: 'assets/img/coworkingspace.jpg',
         5: 'assets/img/eventspace.jpg',
         6: 'assets/img/virtualoffice.jpg',
-        // Add new rooms here - easy to add new entries
-        // 7: 'assets/img/newroom.jpg',
-        // 8: 'assets/img/anotherroom.jpg',
 
-        // Default fallback for any room IDs not in the map
+        //Default
         'default': 'assets/img/meetingroom.jpg'
     };
 
-    // Get image path by room ID
     const imagePath = roomImageMap[roomId] || roomImageMap['default'];
 
-    // Add '../' prefix for relative path from pages/
     return '../' + imagePath;
 }
 
-function getImagePath(imageUrl) {
-    // Handle the new hardcoded paths from API (format: assets/img/imagename.jpg)
-    if (!imageUrl) {
-        return "../assets/img/meetingroom.jpg";
-    }
 
-    // If it starts with 'assets/img/', add '../' prefix for relative path from pages/
-    if (imageUrl.startsWith('assets/img/')) {
-        return '../' + imageUrl;
-    }
-
-    // If it already starts with '../assets/img/', return as-is
-    if (imageUrl.startsWith('../assets/img/')) {
-        return imageUrl;
-    }
-
-    // Legacy fallback for old formats
-    if (imageUrl.startsWith('../')) {
-        return imageUrl;
-    }
-
-    // If it's just a filename without path, assume it's in assets/img/
-    if (!imageUrl.includes('/')) {
-        return '../assets/img/' + imageUrl;
-    }
-
-    // Default fallback
-    return '../' + imageUrl;
-}
-
-// Barcode generation functions
+//Barcode Generate
 function generateBookingId(bookingId) {
     return 'BK' + String(bookingId).padStart(3, '0');
 }
@@ -68,7 +33,6 @@ function generateBookingId(bookingId) {
 function generateBarcode(bookingId) {
     const code = generateBookingId(bookingId);
 
-    // Simple barcode pattern using CSS
     const barcodePattern = code.split('').map(char => {
         const binary = char.charCodeAt(0).toString(2).padStart(8, '0');
         return binary.split('').map(bit => bit === '1' ? '█' : ' ').join('');
@@ -103,12 +67,10 @@ async function loadRooms() {
     try {
         const response = await api.getAllRooms();
 
-        // Handle new API response format with success wrapper
         const roomsData = response.success ? response : response;
         const roomsArray = Array.isArray(roomsData) ? roomsData : (roomsData.data || []);
 
         rooms = roomsArray.map(room => {
-            // Use local hardcoded image mapping function with room ID
             const imagePath = getHardcodedImagePath(room.id);
 
             return {
@@ -116,8 +78,8 @@ async function loadRooms() {
                 name: room.room_name,
                 description: room.description || `${room.room_name} - A professional space for your business needs.`,
                 price: room.price,
-                image: imagePath, // Use hardcoded image path by ID
-                status: room.status || 'available' // Add status from API
+                image: imagePath,
+                status: room.status || 'available' 
             };
         });
         renderRooms();
@@ -125,7 +87,6 @@ async function loadRooms() {
         console.error('Failed to load rooms:', error);
         utils.showNotification('Failed to load rooms. Please try again later.', 'error');
 
-        // Show empty state instead of fallback data
         const grid = document.getElementById('roomsGrid');
         grid.innerHTML = `
             <div class="error-state">
@@ -141,7 +102,6 @@ async function loadRooms() {
 function checkLoginStatus() {
     currentUser = utils.getCurrentUser();
 
-    // Log for debugging
     if (currentUser) {
         console.log('User logged in:', currentUser.name);
     } else {
@@ -152,7 +112,6 @@ function checkLoginStatus() {
     loadUserBookings();
 }
 
-// Add function to refresh login status (useful after returning from login)
 function refreshLoginStatus() {
     const urlParams = new URLSearchParams(window.location.search);
     const justLoggedIn = urlParams.get('logged_in');
@@ -262,19 +221,16 @@ function updateProfileModal() {
         </form>
     `;
 
-    // Add form submit handler
     const form = document.getElementById('editProfileForm');
     if (form) {
         form.addEventListener('submit', handleProfileUpdate);
     }
 
-    // Update form values with current user data
     setTimeout(() => {
         refreshProfileForm();
     }, 100);
 }
 
-// Update form values with current data after API call
 function refreshProfileForm() {
     if (!currentUser) return;
 
@@ -285,24 +241,19 @@ function refreshProfileForm() {
     if (phoneInput) phoneInput.value = currentUser.no_telp || '';
 }
 
-// Validate password strength
 function validatePassword(password) {
-    // Password should be at least 8 characters long
     if (password.length < 8) {
         return false;
     }
 
-    // Should contain at least one uppercase letter
     if (!/[A-Z]/.test(password)) {
         return false;
     }
 
-    // Should contain at least one lowercase letter
     if (!/[a-z]/.test(password)) {
         return false;
     }
 
-    // Should contain at least one number
     if (!/\d/.test(password)) {
         return false;
     }
@@ -310,11 +261,9 @@ function validatePassword(password) {
     return true;
 }
 
-// Update profile display elements throughout the UI
 function updateProfileDisplay() {
     if (!currentUser) return;
 
-    // Update profile menu/username in navigation
     const profileNameElements = document.querySelectorAll('.profile-name, .user-name, #profileMenu .user-info span');
     profileNameElements.forEach(element => {
         if (element) {
@@ -322,13 +271,11 @@ function updateProfileDisplay() {
         }
     });
 
-    // Update profile button text if it exists
     const profileButton = document.querySelector('.profile-btn');
     if (profileButton) {
         profileButton.textContent = currentUser.name;
     }
 
-    // Update any welcome messages
     const welcomeElements = document.querySelectorAll('.welcome-message, .user-welcome');
     welcomeElements.forEach(element => {
         if (element) {
@@ -336,13 +283,11 @@ function updateProfileDisplay() {
         }
     });
 
-    // Update header user info if exists
     const headerUserInfo = document.querySelector('.header-user-info');
     if (headerUserInfo) {
         headerUserInfo.textContent = currentUser.name;
     }
 
-    // Update avatar initials if they exist
     const avatarElements = document.querySelectorAll('.avatar, .user-avatar');
     avatarElements.forEach(element => {
         if (element && element.textContent) {
@@ -358,7 +303,7 @@ function updateProfileDisplay() {
     console.log('Profile display updated with new name:', currentUser.name);
 }
 
-// Handle profile update form submission
+//Handler Profile
 async function handleProfileUpdate(e) {
     e.preventDefault();
 
@@ -368,7 +313,6 @@ async function handleProfileUpdate(e) {
     const password = formData.get('password');
     const confirmPassword = formData.get('confirmPassword');
 
-    // Validate password if provided
     if (password || confirmPassword) {
         if (!validatePassword(password)) {
             showNotification('Password must be at least 8 characters long and include uppercase, lowercase, and numbers', 'error');
@@ -386,12 +330,10 @@ async function handleProfileUpdate(e) {
         no_telp: formData.get('no_telp') || ''
     };
 
-    // Only include password if it's provided
     if (password) {
         updateData.password = password;
     }
 
-    // Show loading state
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.textContent;
     submitBtn.textContent = 'Updating...';
@@ -399,7 +341,6 @@ async function handleProfileUpdate(e) {
 
     try {
 
-        // Call the update profile API
         const response = await fetch('../api/auth.php?action=update_profile', {
             method: 'PUT',
             headers: {
@@ -411,10 +352,8 @@ async function handleProfileUpdate(e) {
         const result = await response.json();
 
         if (result.success) {
-            // Update current user data
             currentUser = result.data.user;
 
-            // Update session storage if it exists
             const userSession = localStorage.getItem('user_session');
             if (userSession) {
                 const session = JSON.parse(userSession);
@@ -423,7 +362,6 @@ async function handleProfileUpdate(e) {
                 localStorage.setItem('user_session', JSON.stringify(session));
             }
 
-            // Also update sessionStorage if it exists
             const tempSession = sessionStorage.getItem('user_session_temp');
             if (tempSession) {
                 const session = JSON.parse(tempSession);
@@ -432,13 +370,10 @@ async function handleProfileUpdate(e) {
                 sessionStorage.setItem('user_session_temp', JSON.stringify(session));
             }
 
-            // Show success message
             showNotification('Profile updated successfully!', 'success');
 
-            // Update UI elements with new user data
             updateProfileDisplay();
 
-            // Close modal and reset form
             closeProfileModal();
 
         } else {
@@ -448,7 +383,6 @@ async function handleProfileUpdate(e) {
         console.error('Error updating profile:', error);
         showNotification('Error updating profile. Please try again.', 'error');
     } finally {
-        // Restore button state
         const submitBtn = form.querySelector('button[type="submit"]');
         if (submitBtn) {
             submitBtn.textContent = originalText;
@@ -457,7 +391,6 @@ async function handleProfileUpdate(e) {
     }
 }
 
-// Close profile modal
 function closeProfileModal() {
     const modal = document.getElementById('profileModal');
     if (modal) {
@@ -465,7 +398,6 @@ function closeProfileModal() {
     }
 }
 
-// Load user bookings
 async function loadUserBookings() {
     if (!currentUser) {
         myBookings = [];
@@ -491,14 +423,12 @@ async function loadUserBookings() {
     }
 }
 
-// Get status badge HTML and styling
 function getStatusBadge(status) {
     const badges = {
-        // Room statuses
         'available': { text: 'Available', class: 'badge-available' },
         'unavailable': { text: 'Unavailable', class: 'badge-occupied' },
 
-        // Booking statuses
+
         'confirmed': { text: 'Confirmed', class: 'badge-available' },
         'cancelled': { text: 'Cancelled', class: 'badge-occupied' }
     };
@@ -507,10 +437,8 @@ function getStatusBadge(status) {
     return `<div class="room-status-badge ${badge.class}">${badge.text}</div>`;
 }
 
-// Get status indicator line class for colored left border
 function getStatusLineClass(status) {
     const statusLineMap = {
-        // Booking statuses
         'confirmed': 'status-line-confirmed',
         'cancelled': 'status-line-cancelled'
     };
@@ -518,7 +446,6 @@ function getStatusLineClass(status) {
     return statusLineMap[status.toLowerCase()] || 'status-line-confirmed';
 }
 
-// Render rooms
 function renderRooms() {
     const grid = document.getElementById('roomsGrid');
     grid.innerHTML = rooms.map(room => {
@@ -529,7 +456,6 @@ function renderRooms() {
         const buttonText = isUnavailable ? 'Not Available' : 'Book Now';
         const buttonDisabled = isUnavailable ? 'disabled' : '';
 
-        // Use the image path that was already processed from API
         const roomImagePath = room.image;
 
         return `
@@ -549,7 +475,6 @@ function renderRooms() {
     }).join('');
 }
 
-// Open booking modal
 function openBookingModal(roomId) {
     if (!utils.isLoggedIn()) {
         showLoginWarning();
@@ -572,7 +497,6 @@ function openBookingModal(roomId) {
     renderStep1();
 }
 
-// Show login warning modal
 function showLoginWarning() {
     const warningModal = document.createElement('div');
     warningModal.className = 'modal active';
@@ -603,7 +527,6 @@ function goToLogin() {
     window.location.href = `Login.html?return=${encodeURIComponent(currentUrl)}`;
 }
 
-// Step 1: Booking Details
 function renderStep1() {
     updateSteps(1);
     document.getElementById('modalBody').innerHTML = `
@@ -681,7 +604,6 @@ function renderStep1() {
     };
 }
 
-// Step 2: Payment
 function renderStep2() {
     updateSteps(2);
     const days = calculateDays();
@@ -732,7 +654,6 @@ function renderStep2() {
     `;
 }
 
-// Select payment method
 function selectPayment(method, element) {
     document.querySelectorAll('.payment-method').forEach(el => {
         el.classList.remove('selected');
@@ -741,7 +662,6 @@ function selectPayment(method, element) {
     bookingData.paymentMethod = method;
 }
 
-// Step 3: Confirmation with API call
 async function renderStep3() {
     if (!bookingData.paymentMethod) {
         utils.showNotification('Please select a payment method', 'error');
@@ -781,7 +701,6 @@ async function renderStep3() {
                          (responseData && (responseData.booking_id || response.booking_id));
 
         if (isSuccess) {
-            // Success
             updateSteps(3);
             document.getElementById('modalBody').innerHTML = `
                 <div class="success-message">
@@ -832,7 +751,6 @@ async function renderStep3() {
             }
         }
     } catch (error) {
-        // Error
         document.getElementById('modalBody').innerHTML = `
             <div class="error-message">
                 <div class="error-icon">❌</div>
@@ -845,7 +763,7 @@ async function renderStep3() {
     }
 }
 
-// Cancel booking function
+//Cancel Booking
 function cancelBooking(bookingId, roomName) {
     const cancelModal = document.createElement('div');
     cancelModal.className = 'modal active';
@@ -866,13 +784,11 @@ function cancelBooking(bookingId, roomName) {
     document.body.appendChild(cancelModal);
 }
 
-// Close cancel confirmation modal
 function closeCancelModal() {
     const modal = document.getElementById('cancelConfirmationModal');
     if (modal) modal.remove();
 }
 
-// Confirm and process cancellation
 async function confirmCancel(bookingId, roomName) {
     closeCancelModal();
 
@@ -914,7 +830,6 @@ async function confirmCancel(bookingId, roomName) {
     }
 }
 
-// Helper functions
 function calculateDays() {
     if (!bookingData.checkIn || !bookingData.checkOut) return 1;
     const start = new Date(bookingData.checkIn);
@@ -951,7 +866,6 @@ function closeAndReset() {
     bookingData = {};
 }
 
-// Render Bookings
 function renderBookings(filter) {
     const list = document.getElementById('bookingsList');
     let filteredBookings = filter === 'all'
@@ -998,13 +912,11 @@ function renderBookings(filter) {
     }).join('');
 }
 
-// Show booking detail with barcode
 function showBookingDetail(bookingId, roomName) {
-    // Find booking data
     const booking = myBookings.find(b => b.id === bookingId);
     if (!booking) return;
 
-    const bookingCode = generateBookingId(bookingId.substring(2)); // Remove 'BK' prefix if exists
+    const bookingCode = generateBookingId(bookingId.substring(2));
 
     const modal = document.createElement('div');
     modal.className = 'modal active';
@@ -1059,7 +971,6 @@ function showBookingDetail(bookingId, roomName) {
     document.body.appendChild(modal);
 }
 
-// Close booking detail modal
 function closeBookingDetailModal() {
     const modal = document.getElementById('bookingDetailModal');
     if (modal) {
@@ -1067,7 +978,6 @@ function closeBookingDetailModal() {
     }
 }
 
-// Filter Bookings
 function filterBookings(filter, buttonElement) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     buttonElement.classList.add('active');
@@ -1161,7 +1071,6 @@ function initializeEventListeners() {
     });
 }
 
-// Show notification function
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
@@ -1169,7 +1078,6 @@ function showNotification(message, type = 'success') {
 
     document.body.appendChild(notification);
 
-    // Auto remove after 3 seconds
     setTimeout(() => {
         notification.style.animation = 'slideIn 0.3s ease reverse';
         setTimeout(() => {
@@ -1180,7 +1088,6 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Initialize on page load
 window.addEventListener('load', function() {
     refreshLoginStatus();
     loadRooms();

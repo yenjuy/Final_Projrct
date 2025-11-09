@@ -117,7 +117,6 @@ class RegisterManager {
         });
     }
 
-    // Handle form submission
     async handleFormSubmission() {
         if (!this.isFormValid()) return;
 
@@ -155,7 +154,6 @@ class RegisterManager {
         return isValid;
     }
 
-    // Get form data
     getFormData() {
         return {
             name: document.getElementById('fullName').value,
@@ -250,11 +248,10 @@ class RegisterManager {
             'Register';
     }
 
-    // Handle successful registration
+    //Handle Success Register
     handleRegistrationSuccess() {
         RegisterUtils.showNotification('Registration successful! Redirecting to login...', 'success');
 
-        // Show success message
         const successMessage = document.getElementById('successMessage');
         if (successMessage) {
             successMessage.style.display = 'block';
@@ -275,7 +272,6 @@ class RegisterManager {
     }
 }
 
-// Utility functions
 const RegisterUtils = {
     showNotification(message, type = 'info') {
         if (window.utils && window.utils.showNotification) {
@@ -295,7 +291,6 @@ const RegisterUtils = {
         return phoneRegex.test(phone) && phone.length >= 10;
     },
 
-    // Add validation styles
     addValidationStyles() {
         if (!document.getElementById('register-validation-styles')) {
             const style = document.createElement('style');
@@ -360,7 +355,6 @@ const RegisterUtils = {
     }
 };
 
-// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     RegisterUtils.addValidationStyles();
 

@@ -7,13 +7,10 @@ class ApiService {
         const pathname = window.location.pathname;
 
         if (pathname.includes('/admin/')) {
-            // For admin pages, go up one level to root, then to api
             return '../api';
         } else if (pathname.includes('/pages/')) {
-            // For pages, go up one level to root, then to api
             return '../api';
         } else {
-            // For root level files
             return './api';
         }
     }
@@ -52,7 +49,6 @@ class ApiService {
         }
     }
 
-    // Authentication endpoints
     async login(email, password) {
         return this.request('/auth.php?action=login', {
             method: 'POST',
@@ -74,16 +70,17 @@ class ApiService {
         });
     }
 
-    // Room endpoints
+    //Room Endpoint
     async getAllRooms() {
         return this.request('/rooms.php');
     }
 
-    // Booking endpoints
+    //Booking Endpoint
     async getUserBookings(userId) {
         return this.request(`/bookings.php?action=user_bookings&user_id=${userId}`);
     }
 
+    //Create Booking
     async createBooking(bookingData) {
         return this.request('/bookings.php', {
             method: 'POST',
@@ -91,6 +88,7 @@ class ApiService {
         });
     }
 
+    //Update Booking Status
     async updateBookingStatus(bookingId, status) {
         return this.request(`/bookings.php?id=${bookingId}`, {
             method: 'PUT',
@@ -98,7 +96,7 @@ class ApiService {
         });
     }
 
-    // Dashboard endpoints
+    //Dashboard Endpoint
     async getDashboardStats() {
         return this.request('/dashboard.php?action=stats');
     }
@@ -106,7 +104,6 @@ class ApiService {
 
 const Utils = {
 
-    // Session management
     isLoggedIn() {
         return localStorage.getItem('user_session') !== null ||
             sessionStorage.getItem('user_session_temp') !== null;
@@ -199,7 +196,6 @@ const Utils = {
         return statusMap[status.toLowerCase()] || 'available';
     },
 
-    // UI utilities
     showNotification(message, type = 'success') {
         const colors = {
             success: '#4CAF50',
@@ -242,7 +238,6 @@ const Utils = {
 window.api = new ApiService();
 window.utils = Utils;
 
-// Add notification animations
 (() => {
     const style = document.createElement('style');
     style.textContent = `
